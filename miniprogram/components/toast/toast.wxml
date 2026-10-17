@@ -1,0 +1,4 @@
+<view class="toast {{show ? 'on' : ''}}" aria-role="alert">
+  <icon name="check" size="26" tone="p" />
+  <text class="toast-t">{{text}}</text>
+</view>

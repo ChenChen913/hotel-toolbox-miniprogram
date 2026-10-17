@@ -1,0 +1,20 @@
+<view class="dpk">
+  <view class="dpk-head">
+    <view class="dpk-nav" data-d="{{-1}}" bindtap="onShift" hover-class="dpk-nav-hover" hover-stay-time="80">‹</view>
+    <view class="dpk-title num"><text class="dpk-y">{{y}}</text> 年 {{m + 1}} 月</view>
+    <view class="dpk-nav" data-d="{{1}}" bindtap="onShift" hover-class="dpk-nav-hover" hover-stay-time="80">›</view>
+  </view>
+
+  <view class="dpk-week">
+    <text wx:for="{{week}}" wx:key="*this" class="dpk-w">{{item}}</text>
+  </view>
+
+  <view class="dpk-grid">
+    <view wx:for="{{cells}}" wx:key="key"
+          class="dpk-day num {{item.sel ? 'sel' : ''}} {{item.today ? 'today' : ''}} {{item.past ? 'past' : ''}}"
+          data-str="{{item.str}}"
+          bindtap="onPick"
+          hover-class="dpk-day-hover"
+          hover-stay-time="80">{{item.d === null ? '' : item.d}}</view>
+  </view>
+</view>

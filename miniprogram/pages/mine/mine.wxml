@@ -1,0 +1,92 @@
+<view class="page">
+  <!-- R7：全局背景光斑（fixed 铺满视口，见 app.wxss 的 .bg-glow） -->
+  <view class="bg-glow"></view>
+
+  <!-- 刊头：M18 去重 —— 原文案「数据都在本机 · 不联网、不收集」与首页常驻提示、
+       本页隐私说明三处重复，改为一句页面定位（统计数字也只在首页显示，不在此重复） -->
+  <view class="masthead">
+    <text class="overline">Stay Toolbox</text>
+    <text class="display serif">我的</text>
+    <view class="gold-rule"></view>
+    <text class="tagline">管好你的本机数据</text>
+  </view>
+
+  <!-- 卡片 1 · 备份与恢复（从首页搬来） -->
+  <view class="glass card">
+    <view class="cardhead"><icon name="download" size="30" />备份与恢复</view>
+    <text class="muted note">数据只存在本机。导出的 JSON 会复制到剪贴板，可在换设备或重装后导入恢复；删除小程序或清理微信缓存会一并清掉，重要数据请先导出。</text>
+    <view class="backuprow">
+      <view class="btn small" bindtap="doExport"><icon name="download" size="28" tone="c" />导出备份</view>
+      <view class="btn small ghost" bindtap="doImport"><icon name="upload" size="28" tone="d" />导入备份</view>
+    </view>
+    <text wx:if="{{backupMsg}}" class="muted bmsg">{{backupMsg}}</text>
+  </view>
+
+  <!-- M18：统计卡已删 —— 入住次数 / 晚数 / 平均备齐与首页统计条一模一样，
+       老板要求只显示一次；首页是入口页，统计留在首页。
+       偏好卡已删（老板拍板没用）—— 「默认住宿场景」只影响新建行程的默认值，
+       且没有行程上下文时改它毫无反馈。 -->
+
+  <!-- 卡片 2 · 关于 -->
+  <view class="glass card">
+    <view class="cardhead"><icon name="shield" size="30" tone="k" />关于</view>
+
+    <!-- 免责声明：与知识库顶部那份同源（都取自 core/data.ts 的 DISCLAIMER），改一处两边同步 -->
+    <view class="arow" bindtap="toggleDisc" hover-class="hv">
+      <text class="grow alabel">免责声明</text>
+      <view class="chev {{discOpen ? 'open' : ''}}"><icon name="chevron-down" size="28" tone="k" /></view>
+    </view>
+    <view wx:if="{{discOpen}}" class="abody">
+      <view class="dtitle">{{discTitle}}</view>
+      <view wx:for="{{discLines}}" wx:for-item="p" wx:key="k" class="ali">
+        <block wx:for="{{p.segs}}" wx:for-item="sg" wx:key="k">
+          <text wx:if="{{sg.b}}" class="b">{{sg.t}}</text>
+          <text wx:else>{{sg.t}}</text>
+        </block>
+      </view>
+      <view class="d-alert">
+        <view class="d-alert-t">触发即处理</view>
+        <view class="d-alert-p">
+          <block wx:for="{{discTriggers}}" wx:for-item="p" wx:key="k">
+            <block wx:for="{{p.segs}}" wx:for-item="sg" wx:key="k">
+              <text wx:if="{{sg.b}}" class="b">{{sg.t}}</text>
+              <text wx:else>{{sg.t}}</text>
+            </block>
+          </block>
+        </view>
+      </view>
+    </view>
+
+    <!-- 隐私说明：只陈述本工具的实际行为（不联网 / 不收集 / 数据只在本机）。
+         注意：正式的《隐私政策》《用户协议》需另行拟定后再挂到这里。 -->
+    <view class="arow" bindtap="togglePrivacy" hover-class="hv">
+      <text class="grow alabel">隐私说明</text>
+      <view class="chev {{privacyOpen ? 'open' : ''}}"><icon name="chevron-down" size="28" tone="k" /></view>
+    </view>
+    <view wx:if="{{privacyOpen}}" class="abody">
+      <view class="ali">本工具不联网、不收集任何个人信息：没有账号，不要手机号，不读头像昵称，没有埋点。</view>
+      <view class="ali">所有行程、清单、好物与偏好都只写在本机的小程序缓存里，不上传任何服务器。</view>
+      <view class="ali">「导出备份」= 把 JSON 复制到剪贴板，保存到哪里完全由你自己决定。</view>
+      <view class="ali">删除小程序或清理微信缓存会一并清掉本机数据，重要数据请提前导出。</view>
+    </view>
+
+    <view class="arow arow-static">
+      <text class="grow alabel">版本</text>
+      <text class="muted tiny num">v{{version}}</text>
+    </view>
+  </view>
+
+  <!-- 危险区：与上方卡片彻底拉开，一眼能认出是「危险按钮」 -->
+  <view class="danger-zone">
+    <view class="tiny muted dg-note">清空后不可恢复（含清单勾选记录）</view>
+    <view class="btn danger-btn" bindtap="askClear" hover-class="hv">
+      <icon name="trash" size="30" />清空全部数据
+    </view>
+  </view>
+
+  <!-- P0-6 自定义确认弹窗（导入覆盖 / 清空数据共用） -->
+  <modal show="{{modal.show}}" title="{{modal.title}}" content="{{modal.content}}"
+         cancel-text="取消" confirm-text="{{modal.confirmText}}" danger="{{modal.danger}}"
+         bind:confirm="onModalConfirm" bind:cancel="onModalCancel" />
+
+</view>

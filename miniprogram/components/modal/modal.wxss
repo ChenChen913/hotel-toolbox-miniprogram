@@ -1,0 +1,85 @@
+/* 自定义确认弹窗（P0-6）
+   组件样式默认隔离：这里的 class 不会影响页面，页面/app.wxss 的 class 也进不来。
+   但 CSS 自定义属性（--ink / --red / --pine-deep…）是**继承属性**，会从 page 继承进组件，
+   所以下面直接复用设计令牌，配色与全站一致。 */
+
+.mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1100;                 /* 必须 > tabBar 的 1000（R11） */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 64rpx;
+  background: rgba(28, 45, 38, 0.42);
+  animation: m-fade 0.2s ease both;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 620rpx;
+  padding: 44rpx 40rpx 32rpx;
+  border-radius: 36rpx;
+  /* 玻璃卡的「降级底色」写法：给足半透明实色 + 内高光，不依赖 backdrop-filter */
+  background: rgba(252, 251, 248, 0.96);
+  border: 1rpx solid var(--glass-border);
+  box-shadow: 0 30rpx 80rpx -30rpx rgba(28, 45, 38, 0.5), inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+  animation: m-pop 0.2s ease both;
+}
+
+.dlg-title {
+  font-size: 34rpx;
+  font-weight: 650;
+  color: var(--ink);
+  margin-bottom: 16rpx;
+}
+.dlg-body {
+  font-size: 28rpx;
+  line-height: 1.7;
+  color: var(--ink-2);
+  margin-bottom: 36rpx;
+}
+
+.dlg-foot {
+  display: flex;
+  gap: 20rpx;
+}
+.dlg-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 92rpx;             /* 触摸目标 ≥ 88rpx（P0-2） */
+  border-radius: 22rpx;
+  font-size: 30rpx;
+  font-weight: 650;
+  background: linear-gradient(150deg, #2c7c66, var(--pine-deep));
+  color: #f4f1e8;
+  box-shadow: 0 12rpx 26rpx -16rpx rgba(18, 63, 51, 0.6);
+}
+.dlg-btn.plain {
+  background: none;
+  color: var(--ink-2);
+  border: 1rpx solid var(--hairline);
+  box-shadow: none;
+}
+.dlg-btn.danger {
+  background: var(--red);
+  color: #fff;
+  box-shadow: 0 12rpx 26rpx -16rpx rgba(178, 58, 50, 0.6);
+}
+.dlg-hv {
+  opacity: 0.85;
+}
+
+@keyframes m-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes m-pop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}

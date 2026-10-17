@@ -1,0 +1,96 @@
+/* 源实现：src/components/DatePicker.vue（1px ≈ 2rpx） */
+.dpk {
+  padding: 8rpx 4rpx 0;
+}
+.dpk-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+.dpk-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88rpx;
+  height: 88rpx;
+  flex-shrink: 0;
+  border-radius: 20rpx;
+  color: var(--pine);
+  font-size: 44rpx;
+  line-height: 1;
+}
+.dpk-nav-hover {
+  background: rgba(28, 90, 74, 0.14);
+}
+.dpk-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--pine-deep);
+  letter-spacing: 0.02em;
+}
+.dpk-y {
+  font-size: 33rpx;
+  font-weight: 700;
+}
+
+/* 标头与日期格必须同轨：同样的宽度与间距，否则列宽算出来不同就会错位 */
+.dpk-week {
+  display: flex;
+  margin-bottom: 8rpx;
+}
+.dpk-w {
+  width: 14.2857%;
+  text-align: center;
+  font-size: 23rpx;
+  color: var(--ink-3);
+  padding: 4rpx 0;
+}
+.dpk-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+.dpk-day {
+  position: relative;
+  width: 14.2857%;
+  /* 高度给死、宽度交给百分比：绝不加 aspect-ratio（原因见 .ts 顶部注释） */
+  height: 84rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24rpx;
+  font-size: 29rpx;
+  font-weight: 500;
+  color: var(--ink);
+  box-sizing: border-box;
+}
+.dpk-day-hover {
+  background: rgba(28, 90, 74, 0.09);
+}
+.dpk-day.past {
+  color: var(--ink-3);
+}
+.dpk-day.today {
+  color: var(--pine-deep);
+  font-weight: 700;
+}
+.dpk-day.today::after {
+  content: "";
+  position: absolute;
+  bottom: 14rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.dpk-day.sel {
+  background: linear-gradient(160deg, #256c59, var(--pine-deep));
+  color: #f4f1e8;
+  font-weight: 650;
+  box-shadow: 0 16rpx 36rpx -16rpx rgba(18, 63, 51, 0.65), inset 0 1rpx 0 rgba(255, 255, 255, 0.25);
+}
+.dpk-day.sel.today::after {
+  background: #f4f1e8;
+}

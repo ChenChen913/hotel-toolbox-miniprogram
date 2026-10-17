@@ -1,0 +1,56 @@
+/* 悬浮胶囊玻璃导航（还原 src/App.vue 的 .navbar）
+   源实现：width: min(420px, calc(100% - 32px))  → 420px = 840rpx */
+
+.tbwrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  padding: 0 32rpx calc(24rpx + env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.navbar {
+  pointer-events: auto;
+  display: flex;
+  width: 100%;
+  max-width: 840rpx;
+  padding: 10rpx;
+  border-radius: 99rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 18rpx 50rpx -22rpx rgba(28, 45, 38, 0.45), inset 0 1rpx 0 #fff;
+  /* 渐进增强：不支持的机型忽略这两行，退回上面的半透明实色 */
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rpx;
+  min-height: 92rpx;
+  border-radius: 99rpx;
+}
+
+.tab.on {
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.7));
+  box-shadow: 0 8rpx 22rpx -10rpx rgba(28, 45, 38, 0.32), inset 0 1rpx 0 #fff;
+}
+
+.tbtext {
+  font-size: 23rpx;
+  line-height: 1.2;
+  color: var(--ink-2);
+}
+
+.tab.on .tbtext {
+  color: var(--pine-deep);
+  font-weight: 650;
+}

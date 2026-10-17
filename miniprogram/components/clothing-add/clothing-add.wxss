@@ -1,0 +1,115 @@
+/* 源实现：src/components/ClothingAdd.vue（1px ≈ 2rpx）
+   M5：内联展开 → 真浮层（fixed + 遮罩），见 .ts 顶部说明 */
+
+.cwrap {
+  width: 100%;
+  padding: 18rpx 0;
+}
+.ctrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 84rpx;
+  padding: 0 24rpx;
+  border-radius: 22rpx;
+  border: 1rpx solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
+  font-size: 27rpx;
+  color: var(--ink);
+}
+.ctrigger.on {
+  border-color: var(--pine);
+  background: rgba(255, 255, 255, 0.9);
+}
+/* 不能用 .ph：app.wxss 里有同名「占位页」样式，会被误命中 */
+.cph {
+  color: var(--ink-3);
+}
+
+/* —— 浮层：遮罩 + 面板 —— */
+.cmask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1090;
+  background: rgba(20, 26, 22, 0.18);
+}
+
+.cpanel {
+  position: fixed;
+  z-index: 1100;
+  max-height: 640rpx;
+  display: flex;
+  flex-direction: column;
+  padding: 12rpx;
+  border-radius: 26rpx;
+  background: rgba(255, 253, 249, 0.98);
+  border: 1rpx solid var(--glass-border);
+  box-shadow: 0 40rpx 96rpx -36rpx rgba(28, 45, 38, 0.5), inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+}
+
+/* R6：类型列表区 —— scroll-view 接管滚动（遮罩 catchtouchmove 会取消普通 view
+   overflow 滚动的默认行为，这是「面板滑不动」的根因）。上限压在 520rpx，
+   给底部常驻的输入行留出空间。 */
+.clist {
+  flex: 1;
+  min-height: 0;
+  max-height: 520rpx;
+}
+/* M19（老板点名）：滚动条常亮。WebView 的滚动条默认是 overlay 式（滚动时闪现、
+   停止即淡出），用户根本意识不到列表能往下滑。只要给 ::-webkit-scrollbar 定义了
+   尺寸，WebKit 就切到 classic 模式 —— 滚动条常驻显示，不再淡出。 */
+.clist ::-webkit-scrollbar {
+  width: 6rpx;
+}
+.clist ::-webkit-scrollbar-thumb {
+  background: rgba(28, 90, 74, 0.35);
+  border-radius: 3rpx;
+}
+
+.copt {
+  display: flex;
+  align-items: center;
+  min-height: 76rpx;
+  padding: 0 20rpx;
+  border-radius: 18rpx;
+  font-size: 27rpx;
+  color: var(--ink);
+}
+.copt-hover {
+  background: rgba(28, 90, 74, 0.08);
+}
+/* M18：.copt.chosen 退役 —— 触发条不再保留已选类型，面板里没有「当前选中」可高亮 */
+/* R6：「自定义」项 —— 列表末尾的输入入口，与预设类型做出视觉区分 */
+.copt-custom {
+  gap: 10rpx;
+  color: var(--pine-deep);
+  font-weight: 650;
+  border-top: 1rpx dashed var(--hairline);
+  border-radius: 0;
+  margin-top: 8rpx;
+  padding-top: 16rpx;
+}
+.crow {
+  display: flex;
+  gap: 12rpx;
+  padding: 8rpx 4rpx 4rpx;
+  border-top: 1rpx dashed var(--hairline);
+  margin-top: 8rpx;
+}
+.cinput {
+  flex: 1;
+  min-width: 0;
+  min-height: 68rpx;
+  font-size: 26rpx;
+}
+.cinput-ph {
+  color: var(--ink-3);
+}
+.caddbtn {
+  flex-shrink: 0;
+  padding: 0 28rpx;
+}

@@ -1,0 +1,230 @@
+/* 好物 —— 迁移自 GearView.vue */
+
+/* 底部给悬浮胶囊 tabBar 让位 */
+.page {
+  padding: 0 32rpx calc(200rpx + env(safe-area-inset-bottom));
+}
+
+.gear-head {
+  margin: 16rpx 4rpx 8rpx;
+}
+.overline {
+  font-size: 22rpx;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+  font-weight: 600;
+}
+.display {
+  margin: 8rpx 0;
+  font-size: 54rpx;
+  font-weight: 650;
+  color: var(--pine-deep);
+}
+.tagline {
+  font-size: 27rpx;
+  color: var(--ink-2);
+}
+
+.addbtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100rpx;
+  margin-top: 28rpx;
+  border-radius: 30rpx;
+  border: 3rpx dashed rgba(169, 133, 61, 0.45);
+  background: rgba(169, 133, 61, 0.07);
+  color: #8a6a2c;
+  font-size: 30rpx;
+  font-weight: 650;
+  gap: 12rpx;
+}
+.addbtn:active {
+  background: rgba(169, 133, 61, 0.16);
+}
+
+.gcard {
+  padding: 12rpx 28rpx;
+  margin: 20rpx 0;
+}
+.gearitem {
+  display: flex;
+  align-items: baseline;
+  padding: 18rpx 0;
+  border-bottom: 1rpx dashed var(--hairline);
+}
+.gearitem:last-of-type {
+  border-bottom: 0;
+}
+.gname {
+  font-size: 30rpx;
+  font-weight: 650;
+  color: var(--ink);
+}
+.gbrand {
+  flex: 1;
+  min-width: 0;
+  font-size: 26rpx;
+  color: var(--ink-2);
+}
+.gbrand::before {
+  content: "·";
+  margin: 0 12rpx;
+  color: var(--ink-3);
+}
+.pickdel {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 0 8rpx;
+  font-size: 25rpx;
+  color: var(--ink-3);
+}
+/* 图标是 background-image，无法靠 color 变红，用透明度做点击反馈 */
+.pickdel:active {
+  opacity: 0.45;
+}
+.emptyp {
+  margin-top: 36rpx;
+  text-align: center;
+}
+.gearfoot {
+  margin: 28rpx 8rpx 0;
+  font-size: 24rpx;
+  color: var(--ink-3);
+}
+
+/* —— 添加弹窗：底部抽屉（顶部圆角 24px，高度上限 88vh）—— */
+.gmask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(28, 45, 38, 0.42);
+}
+.gdialog {
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 40rpx 36rpx calc(36rpx + env(safe-area-inset-bottom));
+  border-radius: 48rpx 48rpx 0 0;
+}
+.gdlg-head {
+  display: flex;
+  align-items: center;
+}
+.gdlg-title {
+  flex: 1;
+  margin: 0;
+  font-size: 40rpx;
+}
+.gclose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 68rpx;
+  height: 68rpx;
+  flex-shrink: 0;
+  border-radius: 22rpx;
+  border: 1rpx solid var(--hairline);
+  background: rgba(35, 41, 37, 0.06);
+  font-size: 36rpx;
+  color: var(--ink-2);
+}
+.gdlg-sub {
+  margin: 6rpx 0 28rpx;
+  font-size: 25rpx;
+  color: var(--ink-2);
+}
+.gfield {
+  margin-bottom: 24rpx;
+}
+.glabel {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10rpx;
+  font-size: 25rpx;
+  color: var(--ink-2);
+}
+.ghint {
+  margin-left: 14rpx;
+  font-size: 22rpx;
+  color: var(--gold);
+}
+.req {
+  font-size: 22rpx;
+  color: var(--red);
+}
+.opt {
+  font-size: 22rpx;
+  color: var(--ink-3);
+}
+.ginput {
+  height: 92rpx;
+  padding: 0 26rpx;
+  font-size: 31rpx;
+  color: var(--ink);
+  border: 1rpx solid var(--glass-border);
+  border-radius: 26rpx;
+  background: rgba(255, 255, 255, 0.72);
+}
+.catchips {
+  display: flex;
+  flex-wrap: wrap;
+}
+.catchip {
+  margin: 0 16rpx 16rpx 0;
+  padding: 12rpx 26rpx;
+  border-radius: 99rpx;
+  border: 3rpx solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 26rpx;
+  color: var(--ink);
+}
+.catchip.on {
+  border-color: var(--pine);
+  background: rgba(28, 90, 74, 0.1);
+  color: var(--pine-deep);
+  font-weight: 650;
+}
+/* 联想选中的标签：金色虚线，和用户手点的实线区分开 */
+.catchip.guessed {
+  border-color: var(--gold);
+  border-style: dashed;
+  background: rgba(169, 133, 61, 0.1);
+  color: #8a6a2c;
+}
+/* 联想命中的轻微缩放脉冲：两个 keyframes 名字交替，否则同名动画不会重播 */
+.catchips.pulse-a {
+  animation: gpulse-a 0.32s ease-out;
+}
+.catchips.pulse-b {
+  animation: gpulse-b 0.32s ease-out;
+}
+@keyframes gpulse-a {
+  from { transform: scale(0.97); opacity: 0.6; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes gpulse-b {
+  from { transform: scale(0.97); opacity: 0.6; }
+  to { transform: none; opacity: 1; }
+}
+.gerr {
+  margin: 4rpx 0 0;
+  font-size: 25rpx;
+  color: var(--red);
+}
+.gdlg-foot {
+  display: flex;
+  margin-top: 36rpx;
+}
+.gdlg-foot .btn {
+  flex: 1;
+}
+.gdlg-foot .btn + .btn {
+  margin-left: 20rpx;
+}

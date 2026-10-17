@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "usingComponents": {
+    "stepper": "/components/stepper/stepper",
+    "icon": "/components/icon/icon",
+    "gear-panel": "/components/gear-panel/gear-panel"
+  }
+}

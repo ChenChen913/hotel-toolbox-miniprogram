@@ -1,0 +1,219 @@
+/* 源实现：src/components/HomeView.vue（1px ≈ 2rpx） */
+
+/* 底部给悬浮胶囊 tabBar 让位（导航高约 92rpx + 上下留白 + 安全区） */
+.page {
+  padding: 0 32rpx calc(200rpx + env(safe-area-inset-bottom));
+}
+
+/* —— 刊头 —— */
+/* P0-3：刊头瘦身，把主按钮从屏幕上方约 1/4 处往下拉，落进单手拇指活动区 */
+.masthead {
+  padding: 32rpx 12rpx 16rpx;
+}
+.overline {
+  display: block;
+  font-size: 22rpx;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 28rpx;
+}
+.display {
+  display: block;
+  font-size: 52rpx;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+.gold-rule {
+  display: block;
+  width: 88rpx;
+  height: 4rpx;
+  border-radius: 2rpx;
+  background: linear-gradient(90deg, var(--gold), rgba(201, 162, 39, 0.25));
+  margin: 20rpx 0 16rpx;
+}
+.tagline {
+  display: block;
+  margin-bottom: 28rpx;
+  font-size: 28rpx;
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
+}
+/* P0-3：主按钮升级为「大行动区」——更高、更圆、字更大，右侧补 chevron 暗示可点进去 */
+.createbtn {
+  position: relative;
+  min-height: 112rpx;
+  border-radius: 28rpx;
+  font-size: 34rpx;
+  gap: 12rpx;
+}
+.createbtn-chev {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+}
+
+/* —— 空状态 —— */
+.empty {
+  text-align: center;
+  padding: 80rpx 48rpx 60rpx;
+  margin-top: 20rpx;
+}
+.empty-line {
+  display: block;
+  font-size: 34rpx;
+  color: var(--ink);
+  letter-spacing: 0.06em;
+  margin-bottom: 20rpx;
+}
+.empty .muted {
+  display: block;
+  margin: 12rpx 0;
+}
+.empty .dim {
+  opacity: 0.65;
+  font-size: 25rpx;
+}
+
+/* —— 统计条 —— */
+.statrow {
+  display: flex;
+  align-items: stretch;
+  padding: 28rpx 20rpx;
+  margin: 36rpx 0 8rpx;
+}
+.stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.stat .num {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--pine-deep);
+}
+.pctsign {
+  font-size: 24rpx;
+  font-weight: 600;
+}
+.statlabel {
+  font-size: 23rpx;
+  color: var(--ink-2);
+}
+.vsep {
+  width: 1rpx;
+  background: var(--hairline);
+}
+
+/* —— 区块头 —— */
+.sechead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 44rpx 8rpx 16rpx;
+}
+.sec-label-inline {
+  margin: 0;
+}
+/* P0-2：纯文字热区，用「负 margin + padding」把可点区外扩到 ≥88rpx，视觉密度不变 */
+.copylink {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 24rpx 16rpx;
+  margin: -16rpx -12rpx;
+  font-size: 25rpx;
+  color: var(--pine-deep);
+}
+.copylink:active {
+  opacity: 0.6;
+}
+
+/* —— 行程卡 —— */
+.staycard {
+  display: flex;
+  gap: 28rpx;
+  padding: 32rpx;
+  margin: 20rpx 0;
+}
+.key {
+  flex-shrink: 0;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--pine-deep);
+  border: 1rpx solid rgba(169, 133, 61, 0.35);
+  background: rgba(201, 162, 39, 0.08);
+}
+.sc-date {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--ink);
+}
+.nights {
+  font-weight: 400;
+  color: var(--ink-2);
+  font-size: 26rpx;
+}
+.meta {
+  margin-top: 4rpx;
+  font-size: 24rpx;
+}
+.miniline {
+  height: 8rpx;
+  border-radius: 999rpx;
+  background: rgba(35, 41, 37, 0.08);
+  overflow: hidden;
+  margin-top: 16rpx;
+}
+.miniline-in {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #2c7c66, var(--pine));
+  transition: width 0.3s;
+}
+.sc-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.phase {
+  font-size: 22rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  color: var(--pine-deep);
+  background: rgba(28, 90, 74, 0.1);
+  border: 1rpx solid rgba(28, 90, 74, 0.22);
+}
+.chev {
+  color: var(--ink-3);
+  font-size: 34rpx;
+  line-height: 1;
+}
+
+/* —— 备份区样式已随功能一起搬到「我的」页（E1），首页不再有折叠备份块 —— */
+
+/* 常驻的「数据只保存在本机」提示（06 §3 / §7 要求首页明确告知） */
+.localnote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  margin: 8rpx 8rpx 0;
+  font-size: 24rpx;
+  color: var(--ink-3);
+}

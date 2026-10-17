@@ -1,0 +1,12 @@
+{
+  "navigationBarTitleText": "创建一次入住",
+  "usingComponents": {
+    "stepper": "/components/stepper/stepper",
+    "toggle": "/components/toggle/toggle",
+    "item-row": "/components/item-row/item-row",
+    "date-picker": "/components/date-picker/date-picker",
+    "clothing-add": "/components/clothing-add/clothing-add",
+    "toast": "/components/toast/toast",
+    "icon": "/components/icon/icon"
+  }
+}

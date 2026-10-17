@@ -1,0 +1,222 @@
+/* 源实现：src/components/ItemRow.vue（1px ≈ 2rpx） */
+.row {
+  position: relative;              /* P1-6：给右上角水印勾提供定位父级 */
+  display: flex;
+  align-items: center;
+  /* P1-4：18rpx → 14rpx。一行里要塞 勾选圈 / 名称 / 步进器 / 删除 四段，
+     间距每收 4rpx，名称可用宽就多 12rpx，直接减少省略号触发概率 */
+  gap: 14rpx;
+  /* P1-6：完成态要铺一层淡绿底，绿底得左右各留 12rpx 呼吸位。
+     但名称列本来就紧张，不能靠内补把内容挤窄 —— 改用「负外边距撑出去 + 内补补回来」：
+     内容的 x 坐标完全不变，只有背景向外多铺 12rpx，勾选/取消时不会有左右抖动。 */
+  margin: 0 -12rpx;
+  padding: 16rpx 12rpx;
+  border-radius: 20rpx;
+  transition: background-color 0.2s ease;
+}
+/* 分隔线：加了圆角与绿底之后，通栏实线会横穿绿底，看起来像「两条线」。
+   改成内缩的伪元素细线：与内容左右对齐，不跨越绿底边缘。
+   用「相邻兄弟」而不用 :not()，是因为 .row + .row 在本文件已被验证可用，
+   而 :not() 在部分小程序渲染器上支持不稳，没必要冒这个险。 */
+.row + .row::after {
+  content: '';
+  position: absolute;
+  left: 12rpx;
+  right: 12rpx;
+  top: 0;
+  height: 1rpx;
+  background: var(--hairline);
+}
+
+/* 自绘圆形勾选框（小程序 checkbox 样式无法跨端统一） */
+.tick {
+  flex-shrink: 0;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(35, 41, 37, 0.25);
+  background: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 外扩热区：视觉 44rpx，可点 88rpx（用 margin 撑开） */
+  margin: 22rpx 0;
+}
+.tick.on {
+  background: var(--pine);
+  border-color: var(--pine);
+}
+.tick.off {
+  opacity: 0.35;
+}
+.tickmark {
+  color: #f4f1e8;
+  font-size: 28rpx;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+/* R5-2：整行可点后的按压态。组件样式默认隔离，app.wxss 里的 .hv 传不进来（坑六），
+   必须在组件内再定义一份 —— 少了它 hover-class 静默无效，不报错。 */
+.hv {
+  opacity: 0.7;
+}
+.name {
+  /* P1-4：名称必须一行显示。小程序 <view> 里的长文本默认会折行，
+     折行后行高被撑开、上下两行行距不一致，观感很差。
+     这里锁死单行 + 溢出省略号；字号 30 → 29rpx 再挤一点余量。
+     注：.grow 已声明 min-width:0，flex 子项才允许被压缩到这个宽度以下，
+     否则 flex 默认 min-width:auto 会把省略号撑失效。 */
+  font-size: 29rpx;
+  color: var(--ink);
+  font-weight: 500;
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* —— P1-6 完成态：淡绿底 + 右上角水印勾 ——
+   老板明确要求：去掉删除线、去掉文字变灰。改后「已完成」靠整行底色表达，
+   文字保持全黑可读（原来变灰 + 删除线反而让完成项最难看清）。 */
+.row.done {
+  background: rgba(63, 125, 84, 0.1);   /* --green 的 10% */
+}
+.row.done .name {
+  color: var(--ink);                    /* 不再变灰、不再 line-through */
+}
+/* 「不带」（qty=0）与「已完成」必须一眼分得开，两者都做过「变淡」处理容易混：
+   不带 = 文字 50% 透明 + 左侧勾选框禁用（.tick.off）+ 标签写「不带」
+   完成 = 淡绿底 + 右上角水印勾（文字保持全黑）
+   两者叠加（qty=0 且 done）时，绿底 + 半透明文字仍然读得出「不带」二字。 */
+.row.zero .name {
+  opacity: 0.5;
+}
+
+/* 右上角虚化大号对勾：纯装饰水印，三条硬约束
+   1) 必须常驻节点，用 class 切 opacity —— 用 wx:if 会销毁重建，opacity 过渡失效，
+      表现成「啪一下跳出来」；
+   2) pointer-events:none 绝不能省。它悬在步进器上方，
+      若不穿透点击，会把步进器的热区吃掉；
+   3) 字号 120rpx ≈ 一行的高度，正好压在行内，不会溢出到相邻行。 */
+.row-check {
+  position: absolute;
+  right: 4rpx;
+  top: 0;
+  font-size: 120rpx;
+  line-height: 1;
+  font-weight: 700;
+  color: rgba(63, 125, 84, 0.16);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.row.done .row-check {
+  opacity: 1;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  /* P1-4：12rpx → 8rpx。名称列本来就只有 ~180rpx 宽，
+     这行里挤着「使用人 + 状态标签 + 使用人下拉 + 好物入口」四个小控件，
+     间距不收的话一定会折成两三行，把整行撑高 */
+  gap: 8rpx;
+  margin-top: 4rpx;
+  font-size: 24rpx;
+  color: var(--ink-2);
+}
+.tag {
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  background: rgba(35, 41, 37, 0.06);
+  color: var(--ink-2);
+  /* P1-4：标签内部不许折行（「建议购买」折成两行会顶高整行） */
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tag.need {
+  background: rgba(178, 58, 50, 0.1);
+  color: var(--red);
+}
+.tag.buy {
+  background: rgba(207, 122, 44, 0.12);
+  color: #9a5a1c;
+}
+.tag.shop {
+  background: rgba(90, 125, 140, 0.12);
+  color: var(--slate);
+}
+.tag.home {
+  background: rgba(63, 125, 84, 0.12);
+  color: var(--green);
+}
+.tag.rec {
+  background: rgba(58, 110, 165, 0.12);
+  color: var(--blue);
+}
+.tag.src {
+  background: rgba(169, 133, 61, 0.14);
+  color: #8a6a2c;
+}
+.tag.zero {
+  background: rgba(35, 41, 37, 0.1);
+  color: var(--ink-3);
+}
+
+/* P0-2 备忘：行尾曾有热区 72×72rpx 的删除按钮（.del），M19 退役 ——
+   stepper 减到 0 已等效删除，样式与节点一并移除，不再保留占位。 */
+
+/* 展开好物面板时整行换行，面板占满一行 */
+.row.wrap {
+  flex-wrap: wrap;
+}
+
+/* —— 使用人下拉（源实现 .assign：<select> → 原生 picker）—— */
+.assign {
+  display: inline-block;
+}
+.assign-in {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  min-height: 52rpx;
+  /* P1-4：横向内补 14/12 → 10/8rpx，省下的宽度留给名称列 */
+  padding: 2rpx 10rpx 2rpx 8rpx;
+  border-radius: 14rpx;
+  border: 2rpx solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 24rpx;
+  color: var(--ink-2);
+}
+.caret {
+  font-size: 20rpx;
+  color: var(--ink-3);
+  line-height: 1;
+}
+
+/* —— 好物入口（源实现 .gearbtn）—— */
+.gearbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  /* P1-4：文案缩到 3 字后，内补同步 18 → 12rpx，整颗胶囊窄了约 24rpx */
+  padding: 5rpx 12rpx;
+  border-radius: 999rpx;
+  border: 2rpx solid rgba(169, 133, 61, 0.3);
+  background: rgba(169, 133, 61, 0.1);
+  color: #8a6a2c;
+  font-size: 23rpx;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.gearbtn.open {
+  background: rgba(169, 133, 61, 0.18);
+}

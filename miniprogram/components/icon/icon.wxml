@@ -1,0 +1,1 @@
+<view class="{{cls}}" style="width: {{box}}; height: {{box}}"></view>

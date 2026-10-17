@@ -1,0 +1,200 @@
+<!-- 三段（准备 / 入住 / 退房）左右滑动切换。
+     M16（滑动终案）起改用**原生 <swiper>** 承载（前四轮：页面层 touchstart/touchend 判定 → 不生效；
+     touchmove + _fired 锁 → 不跟手；WXS 视图层方案 → 真机 iOS 上依然无反应，且 WXS
+     跑在视图层、出错无日志，失败完全无声，四轮真机反馈都没能定位）。
+     原生 swiper 的手势由微信客户端自己实现，跟手与触发有平台级保证 ——
+     这也是 CHANGE-REQUESTS02 §2.5 的拍板结论：「不要再用 swiper 之外的方式追求跟手」。
+
+     结构：
+       <swiper class="stage-swiper">  高度由 stay.ts 的 measureSwiper() 按当前段
+                                       实际内容高动态量取后经内联 style 传入
+         <swiper-item> × 3            三段常驻渲染（prep / checkin / checkout），
+                                       滑动时能看到相邻段内容滑入 —— 「翻书」的关键
+       页签与危险区都留在 swiper 外面：页签要 sticky 吸顶（放进 swiper 会被
+       滚动容器干掉），危险区是「整次入住」的操作，不属于任何一段。
+
+     段内容用 <template> 复用 —— 三段的结构只有「准备 / 检查」两种，
+     写三遍既臃肿又容易改漏。非当前段 isCur=false：添加面板等入口不渲染，
+     等同于旧方案相邻段的 pointer-events:none。 -->
+
+<!-- 准备段 -->
+<template name="prepBody">
+  <progress-pill done="{{p.done}}" total="{{p.total}}" label="已备齐" />
+
+  <block wx:for="{{p.groups}}" wx:for-item="g" wx:for-index="gi" wx:key="cat">
+    <view class="grp">
+      <!-- P1-3：分组标题吸顶 + 折叠（右侧箭头 180°→ 收起时转向右） -->
+      <view class="grp-head" data-gi="{{gi}}" bindtap="toggleGroup" hover-class="hv">
+        <text class="grow grp-cat">{{g.cat}}</text>
+        <!-- 空组（R5-6：女性专属的空「化妆品」入口组）没有 0/0 这种计数，藏掉 -->
+        <text wx:if="{{g.total}}" class="grp-cnt num">{{g.done}}/{{g.total}}</text>
+        <view class="grp-arrow {{g.collapsed ? 'rot' : ''}}">
+          <icon name="chevron-down" size="30" tone="k" />
+        </view>
+      </view>
+      <view class="glass card" wx:if="{{!g.collapsed}}">
+        <item-row wx:for="{{g.items}}" wx:for-item="it" wx:key="_k"
+                  item="{{it}}"
+                  ikey="{{it._k}}"
+                  opts="{{k.assignOpts}}"
+                  bind:toggle="onItemToggle"
+                  bind:qty="onItemQty"
+                  bind:assign="onItemAssign" />
+        <!-- 衣物 / 化妆品面板只在当前段渲染：相邻段是预览，不需要它们；
+             两个 id 必须各自唯一，否则 selectComponent 会取错节点（R5-6）。 -->
+        <clothing-add wx:if="{{isCur && g.cat === '衣物'}}" id="clothingAdd" cat="衣物" data-cat="衣物"
+                      trigger="选择衣物类型…" placeholder="输入衣物名称，如：防晒衣"
+                      bind:add="addTyped" />
+        <clothing-add wx:if="{{isCur && g.cat === '化妆品'}}" id="cosmeticAdd" cat="化妆品" data-cat="化妆品"
+                      types="{{cosmeticTypes}}" trigger="选择化妆品类型…" placeholder="输入化妆品名称，如：面膜"
+                      bind:add="addTyped" />
+      </view>
+    </view>
+  </block>
+
+  <!-- 已设为不带（qty = 0）的项。
+       数量调到 0 之后不该还留在准备清单里 —— 所以它们不进上面的分组、不计入「已备齐」。
+       但直接删掉就不可逆了，故另开一个默认收起的区域兜住它们。 -->
+  <view wx:if="{{p.zeroItems.length}}" class="zero-zone">
+    <view class="zero-head" bindtap="toggleZero" hover-class="hv">
+      <text class="grow zero-title">已设为不带（{{p.zeroItems.length}} 项）</text>
+      <view class="grp-arrow {{k.zeroOpen ? '' : 'rot'}}">
+        <icon name="chevron-down" size="30" tone="k" />
+      </view>
+    </view>
+    <view wx:if="{{k.zeroOpen}}" class="glass card">
+      <view wx:for="{{p.zeroItems}}" wx:for-item="z" wx:key="_k" class="zrow">
+        <text class="grow zname">{{z.name}}</text>
+        <view class="zrestore" data-k="{{z._k}}" bindtap="restoreZero" hover-class="hv">恢复</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="glass card think">
+    <view class="think-title">还有一些东西，只有你自己知道</view>
+    <view wx:for="{{k.hints}}" wx:for-item="h" wx:key="text" class="hint-row">
+      <icon name="{{h.icon}}" size="30" tone="p" />
+      <text class="muted">{{h.text}}</text>
+    </view>
+    <view class="addrow">
+      <input class="field grow" placeholder="添加我的必带物品"
+             value="{{k.customName}}" bindinput="onCustomName" />
+      <input class="field qtyin num" type="number" placeholder="数量"
+             value="{{k.customQty}}" bindinput="onCustomQty" />
+      <view class="btn small addbtn" bindtap="addCustom" hover-class="hv">
+        <icon name="plus" size="30" tone="c" />
+      </view>
+    </view>
+  </view>
+</template>
+
+<!-- 入住 / 退房检查段（两段结构完全一致，只是数据不同） -->
+<template name="checkBody">
+  <progress-pill done="{{c.done}}" total="{{c.total}}" label="已完成" />
+
+  <block wx:for="{{c.groups}}" wx:for-item="g" wx:for-index="gi" wx:key="name">
+    <view class="sec-label sec-flex">
+      <view class="dot {{g.tone}}"></view>
+      <text class="grow">{{g.name}}</text>
+      <view wx:if="{{g.link}}" class="glink" data-m="{{g.link}}" bindtap="goKnow">知识详解
+        <icon name="chevron-right" size="22" tone="d" />
+      </view>
+    </view>
+    <view wx:if="{{g.note}}" class="gnote">{{g.note}}</view>
+    <view class="glass card">
+      <view wx:for="{{g.items}}" wx:for-item="ci" wx:for-index="ii" wx:key="text"
+            class="crow {{ci.done ? 'done' : ''}}"
+            data-gi="{{gi}}" data-ii="{{ii}}" bindtap="onCheck" hover-class="hv">
+        <!-- P1-6：右上角虚化对勾水印，常驻节点 + CSS 切 opacity（不能用 wx:if） -->
+        <text class="crow-check">✓</text>
+        <view class="tick {{ci.done ? 'on' : ''}}"></view>
+        <view class="grow name">{{ci.text}}</view>
+      </view>
+    </view>
+  </block>
+</template>
+
+<view class="page">
+  <!-- R7：全局背景光斑（fixed 铺满视口，见 app.wxss 的 .bg-glow） -->
+  <view class="bg-glow"></view>
+
+  <view wx:if="{{missing}}" class="ph">
+    <view class="ph-title">没有找到这次入住</view>
+    <view class="ph-note">记录可能已被删除，或数据被清空了。</view>
+    <view class="btn small" bindtap="goBack" style="margin-top:40rpx;">回首页</view>
+  </view>
+
+  <block wx:else>
+    <!-- 头部 -->
+    <view class="st-head">
+      <view class="icon-btn" bindtap="goBack" aria-label="返回" hover-class="hv">
+        <icon name="arrow-left" size="36" tone="i" />
+      </view>
+      <view class="grow">
+        <view class="st-date num">{{dateLabel}} · {{nights}} 晚</view>
+        <view class="muted tiny">{{purpose}}{{relationLabel}} · {{stageHint}}</view>
+      </view>
+      <view class="emerg" bindtap="goEmergency" hover-class="hv">
+        <icon name="siren" size="28" />紧急
+      </view>
+    </view>
+
+    <!-- 三段页签（P1-2：整块吸顶）。
+         放在 swiper 外面是必须的 —— swiper 是滚动容器，里面的 sticky 会被干掉。 -->
+    <view class="seg-sticky">
+      <view class="seg">
+        <view class="seg-i {{stage === 'prep' ? 'on' : ''}}" data-s="prep" bindtap="onStage">准备</view>
+        <view class="seg-i {{stage === 'checkin' ? 'on' : ''}}" data-s="checkin" bindtap="onStage">
+          <icon name="bed-double" size="30" tone="{{stage === 'checkin' ? 'd' : ''}}" />入住
+        </view>
+        <view class="seg-i {{stage === 'checkout' ? 'on' : ''}}" data-s="checkout" bindtap="onStage">
+          <icon name="door-open" size="30" tone="{{stage === 'checkout' ? 'd' : ''}}" />退房
+        </view>
+      </view>
+    </view>
+
+    <!-- 三段视图 · 原生 swiper（M16 滑动终案）。current 由 render() 写入 stageIdx 驱动；
+         用户滑动触发 bindchange（source === 'touch'）走同一条 gotoStage 入口，
+         与页签点击共用逻辑。duration 与旧 WXS 动画时长（220ms）同档。 -->
+    <swiper class="stage-swiper" style="height: {{swiperH}}px"
+            current="{{stageIdx}}" duration="240" bindchange="onSwiperChange">
+      <swiper-item>
+        <view class="pane-inner" id="pane0">
+          <template is="prepBody" data="{{p: prep, k: common, isCur: stage === 'prep'}}" />
+        </view>
+      </swiper-item>
+      <swiper-item>
+        <view class="pane-inner" id="pane1">
+          <template is="checkBody" data="{{c: checkMap.checkin, k: common, isCur: stage === 'checkin'}}" />
+        </view>
+      </swiper-item>
+      <swiper-item>
+        <view class="pane-inner" id="pane2">
+          <template is="checkBody" data="{{c: checkMap.checkout, k: common, isCur: stage === 'checkout'}}" />
+        </view>
+      </swiper-item>
+    </swiper>
+
+    <!-- 危险区：三个 stage 共用（删除针对整次入住），留在轨道外面 ——
+         它是「整次入住」的操作，不属于任何一段，滑动时不该跟着走 -->
+    <view class="danger-zone">
+      <view class="tiny muted dg-note">删除后不可恢复（含清单勾选记录）</view>
+      <view class="btn danger-btn" bindtap="delStay" hover-class="hv">
+        <icon name="trash" size="30" />删除这次入住
+      </view>
+    </view>
+  </block>
+
+  <!-- P1-1 回到顶部：滚动超过 1/3 屏就出现（阈值见 core/gesture.ts） -->
+  <view wx:if="{{showGoTop}}" class="gotop" bindtap="goTop" hover-class="hv" aria-label="回到顶部">
+    <icon name="chevron-up" size="34" tone="d" />
+  </view>
+
+  <!-- P0-6 自定义确认弹窗（替代 wx.showModal） -->
+  <modal show="{{modal.show}}" title="{{modal.title}}" content="{{modal.content}}"
+         cancel-text="取消" confirm-text="{{modal.confirmText}}" danger="{{modal.danger}}"
+         bind:confirm="onModalConfirm" bind:cancel="onModalCancel" />
+
+  <!-- R4-4：数量归零浮窗。时长由 TS 侧控制（core/toast.ts 的 TOAST_MS，当前 1500ms） -->
+  <toast show="{{toastShow}}" text="{{toastText}}" />
+</view>

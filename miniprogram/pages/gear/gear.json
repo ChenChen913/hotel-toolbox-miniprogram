@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "好物",
+  "usingComponents": {
+    "icon": "/components/icon/icon"
+  }
+}

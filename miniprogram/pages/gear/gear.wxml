@@ -1,0 +1,77 @@
+<view class="page">
+  <!-- R7：全局背景光斑（fixed 铺满视口，见 app.wxss 的 .bg-glow） -->
+  <view class="bg-glow"></view>
+
+  <view class="gear-head">
+    <view class="overline num">My Gear</view>
+    <view class="display">好物收藏</view>
+    <view class="tagline">记下「哪件东西买了哪个牌子」，下次照着买</view>
+  </view>
+
+  <!-- R6：老板要求「添加好物」放在物品列表下面、「恢复默认好物」按钮删除（见 ts 头注释） -->
+  <block wx:for="{{groups}}" wx:for-item="g" wx:key="cat">
+    <view class="sec-label">{{g.cat}}</view>
+    <view class="glass gcard">
+      <view wx:for="{{g.rows}}" wx:for-item="row" wx:key="index" class="gearitem">
+        <text class="gname">{{row.name}}</text>
+        <text wx:if="{{row.brand}}" class="gbrand">{{row.brand}}</text>
+        <view class="pickdel" data-i="{{row.index}}" bindtap="del" aria-label="删除" hover-class="hv">
+          <icon name="trash" size="28" tone="k" />
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view wx:if="{{total === 0}}" class="muted emptyp">
+    还没有收藏任何好物。点下方「添加好物」，先填物品名称（如「充电宝」），品牌可留空。
+  </view>
+
+  <view class="addbtn" bindtap="openAdd" hover-class="hv">
+    <icon name="plus" size="30" tone="d" />添加好物
+  </view>
+
+  <view wx:if="{{total > 0}}" class="gearfoot">共 {{total}} 件 · ⚪ 个人偏好 · 非商业推荐</view>
+
+  <!-- 添加弹窗：底部抽屉式 -->
+  <view wx:if="{{open}}" class="gmask" bindtap="closeAdd">
+    <view class="gdialog glass" catchtap="noop">
+      <view class="gdlg-head">
+        <view class="display gdlg-title">添加好物</view>
+        <view class="gclose" bindtap="closeAdd" aria-label="关闭" hover-class="hv">
+          <icon name="x" size="32" />
+        </view>
+      </view>
+      <view class="gdlg-sub">记下这是什么东西、买的哪个牌子</view>
+
+      <view class="gfield">
+        <view class="glabel">物品名称 <text class="req">必填</text></view>
+        <input class="ginput" placeholder="如：充电宝、耳塞、拖鞋"
+               focus="{{focusName}}" value="{{newName}}" bindinput="onName" />
+      </view>
+
+      <view class="gfield">
+        <view class="glabel">品牌 · 型号 <text class="opt">选填</text></view>
+        <input class="ginput" placeholder="如：安耳悠、小米"
+               value="{{newBrand}}" bindinput="onBrand" />
+      </view>
+
+      <view class="gfield">
+        <view class="glabel">
+          分类
+          <text wx:if="{{guessed}}" class="ghint">已按物品名称选择，可改</text>
+        </view>
+        <view class="catchips {{pulseCls}}">
+          <view wx:for="{{catChips}}" wx:for-item="ch" wx:key="c"
+                class="catchip {{ch.on ? 'on' : ''}} {{ch.gu ? 'guessed' : ''}}"
+                data-c="{{ch.c}}" bindtap="pickCat" hover-class="hv">{{ch.c}}</view>
+        </view>
+      </view>
+
+      <view wx:if="{{err}}" class="gerr">{{err}}</view>
+      <view class="gdlg-foot">
+        <view class="btn ghost" bindtap="closeAdd" hover-class="hv">取消</view>
+        <view class="btn" bindtap="save" hover-class="hv">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

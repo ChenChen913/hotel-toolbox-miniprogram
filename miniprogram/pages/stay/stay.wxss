@@ -1,0 +1,315 @@
+/* 行程页 —— 迁移自 StayView.vue / CheckStage.vue / CheckGroupBlock.vue */
+.st-head {
+  display: flex;
+  align-items: center;
+  margin: 12rpx 0 28rpx;
+}
+.st-date {
+  font-size: 40rpx;
+  font-weight: 650;
+  color: var(--ink);
+}
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88rpx;
+  height: 88rpx;
+  margin-right: 16rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 34rpx;
+  color: var(--pine-deep);
+}
+.emerg {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 68rpx;
+  padding: 0 24rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(178, 58, 50, 0.35);
+  background: rgba(178, 58, 50, 0.08);
+  color: var(--red);
+  font-size: 26rpx;
+  gap: 8rpx;
+  font-weight: 650;
+}
+.emerg:active {
+  background: rgba(178, 58, 50, 0.18);
+}
+
+/* —— 三段页签：分段控件，选中项白底 + 墨绿字 + 阴影 —— */
+
+/* —— M16（滑动终案）：三段视图改用原生 <swiper> 承载（R4-5 的 rail 方案废弃）—— */
+/* 负 margin + width 补偿：把裁剪边界推到屏幕边缘（沿用旧视口容器的同款手法），
+   否则 .glass 卡片那几 rpx 的横向阴影会被 swiper 的裁剪吃掉，左右看起来不对称。
+   高度不在这里定：由 stay.wxml 的内联 style 接 stay.ts measureSwiper() 量得的
+   当前段内容高撑起（swiper 必须有确定高度，而三段内容高度差很大）。 */
+.stage-swiper {
+  margin: 0 -32rpx;
+  width: calc(100% + 64rpx);
+  /* M16 流畅度：松手翻页横移动画期间高度平滑长/缩，消除「横移结束后高度突跳」的顿挫
+     （与 wxml 的 duration="240" 同档）。touch 拖动期间 measureSwiper 不更新高度，
+     故不影响跟手；首帧 600 兜底→实高会有一次过渡，观感为内容展开，可接受。 */
+  transition: height 0.24s ease;
+}
+/* swiper 被推到整屏宽后，各段内容用等量 padding 推回安全区 */
+.pane-inner {
+  width: 100%;
+  padding: 0 32rpx;
+  box-sizing: border-box;
+}
+
+/* P1-2：整块吸顶。外层 .seg-sticky 提供不透明背景 + sticky；
+   内层 .seg 保留原分段控件外观（灰底轨道 + 白色选中胶囊）。
+   雷点：所有祖先都不能有 overflow:hidden/auto，否则 sticky 静默失效（R2）。 */
+.seg-sticky {
+  position: -webkit-sticky;      /* 兼容老基础库 */
+  position: sticky;
+  top: 0;                        /* 页面坐标系里 top:0 即紧贴导航栏下沿，不用自己算导航栏高度 */
+  z-index: 800;                  /* 吸顶 700–800，固定底栏 900，模态 1100（R11） */
+  padding: 8rpx 0 12rpx;
+  background: var(--bg);         /* 必须不透明，否则滚动时内容会透出来 */
+}
+.seg {
+  display: flex;
+  margin: 0;
+  padding: 6rpx;
+  border-radius: 28rpx;
+  background: rgba(35, 41, 37, 0.06);
+}
+.seg-i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 84rpx;
+  border-radius: 24rpx;
+  font-size: 30rpx;
+  color: var(--ink-2);
+  gap: 10rpx;
+  /* M16 流畅度：页签高亮渐入渐出，切段时不再瞬时跳变 */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.seg-i.on {
+  background: #fff;
+  color: var(--pine-deep);
+  font-weight: 650;
+  box-shadow: 0 6rpx 16rpx -8rpx rgba(28, 45, 38, 0.35);
+}
+
+/* —— P1-3 可折叠分组：标题吸顶 + 折叠 —— */
+/* ⚠️ M16 取舍：分组进了 <swiper> 之后，sticky 的最近滚动祖先变成 swiper 本身，
+   而 swiper 不纵向滚动 —— 于是吸顶不再激活，标题随内容一起滚走。
+   这是为了「滑动切换在真机上真正可用」付出的代价（拍板见 CHANGE-REQUESTS02 §2.5），
+   页签吸顶（.seg-sticky 在 swiper 外）不受影响。样式保留：万一将来回退 rail 方案可直接复用。
+   .grp-head 用 min-height + align-items:center 自然产生上下间距。 */
+.grp-head {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 116rpx;                   /* = 上方 .seg-sticky 的实际高度（8 + 96 + 12），见 P1-2 */
+  z-index: 700;                  /* < 页签 800，> 内容；两组交接时后一组压住前一组 */
+  display: flex;
+  align-items: center;
+  min-height: 88rpx;             /* 满足触摸目标（P0-2） */
+  padding: 0 8rpx;
+  background: var(--bg);         /* 必须不透明，防止内容穿透 */
+}
+.grp-cat {
+  font-size: 27rpx;
+  font-weight: 650;
+  color: var(--ink);
+}
+.grp-cnt {
+  flex-shrink: 0;
+  margin-right: 10rpx;
+  font-size: 23rpx;
+  color: var(--ink-2);
+}
+.grp-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 48rpx;
+  height: 48rpx;
+  transition: transform 0.18s ease;
+}
+.grp-arrow.rot {
+  transform: rotate(-90deg);     /* 展开=朝下，收起=朝右（标准折叠指示） */
+}
+
+/* —— 检查组 —— */
+.sec-flex {
+  display: flex;
+  align-items: center;
+}
+/* P0-2：纯文字热区外扩到 ≥88rpx（负 margin 保留原有视觉位置） */
+.glink {
+  display: flex;
+  align-items: center;
+  gap: 2rpx;
+  flex-shrink: 0;
+  margin: -16rpx 0 -16rpx auto;
+  padding: 24rpx 16rpx;
+  font-size: 23rpx;
+  letter-spacing: 0.05em;
+  color: var(--pine-deep);
+}
+.gnote {
+  margin: -4rpx 8rpx 16rpx;
+  font-size: 25rpx;
+  color: var(--ink-2);
+}
+/* P1-6：完成态与准备清单（item-row）保持同一套语言 —— 淡绿底 + 右上角水印勾。
+   .crow 的整行本身就是点击热区（bindtap 在行上，与源实现一致），
+   所以水印勾必须是常驻节点且 pointer-events:none，不能吃掉整行的点击。 */
+.crow {
+  position: relative;              /* 给水印勾提供定位父级 */
+  display: flex;
+  align-items: flex-start;
+  /* 22rpx 0 → 22rpx 12rpx：绿底左右各留 12rpx 呼吸位 */
+  padding: 22rpx 12rpx;
+  margin: 0 -12rpx;                /* 与 item-row 同款：背景外扩、内容不位移 */
+  border-radius: 16rpx;
+  transition: background-color 0.2s ease;
+}
+/* 分隔线同样改成内缩伪元素，避免横穿绿底 */
+.crow + .crow::after {
+  content: '';
+  position: absolute;
+  left: 12rpx;
+  right: 12rpx;
+  top: 0;
+  height: 1rpx;
+  background: var(--hairline);
+}
+.crow .name {
+  font-size: 29rpx;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.crow.done {
+  background: rgba(63, 125, 84, 0.1);   /* --green 的 10% */
+}
+.crow.done .name {
+  color: var(--ink);                    /* P1-6：去掉变灰与删除线 */
+}
+.crow-check {
+  position: absolute;
+  right: 4rpx;
+  top: 0;
+  font-size: 96rpx;
+  line-height: 1;
+  font-weight: 700;
+  color: rgba(63, 125, 84, 0.16);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.crow.done .crow-check {
+  opacity: 1;
+}
+.tick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40rpx;
+  height: 40rpx;
+  margin: 4rpx 20rpx 0 0;
+  border-radius: 50%;
+  border: 2rpx solid rgba(35, 41, 37, 0.25);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 24rpx;
+  color: transparent;
+}
+.tick.on {
+  border-color: var(--pine);
+  background: var(--pine);
+  color: #f4f1e8;
+}
+.tick.on::after {
+  content: "✓";
+}
+
+/* —— 自定义提示块 —— */
+.think {
+  margin-top: 28rpx;
+  padding: 32rpx 36rpx;
+}
+.think-title {
+  margin-bottom: 8rpx;
+  font-size: 30rpx;
+  font-weight: 650;
+}
+.hint-row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 10rpx 0;
+  font-size: 27rpx;
+}
+.addrow {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+.addrow .field {
+  height: 76rpx;
+  padding: 0 20rpx;
+}
+/* P0-1 C 类：三元素一律不缩，宽度固定，配合全局 border-box 不再撑破一行 */
+.qtyin {
+  width: 128rpx;
+  flex: 0 0 128rpx;
+  text-align: center;
+}
+.addbtn {
+  flex-shrink: 0;
+}
+
+/* —— P0-5 危险区（删除这次入住）—— */
+/* 与上方卡片彻底拉开，一眼能认出是「危险按钮」；三屏（准备/入住/退房）共用 */
+.danger-zone {
+  margin-top: 48rpx;
+  padding-top: 32rpx;
+  border-top: 1rpx dashed rgba(178, 58, 50, 0.25);
+}
+.dg-note {
+  display: block;
+  margin-bottom: 16rpx;
+}
+.danger-btn {
+  min-height: 96rpx;
+  border: 2rpx solid rgba(178, 58, 50, 0.35);
+  background: rgba(178, 58, 50, 0.06);
+  color: var(--red);
+  font-weight: 650;
+  box-shadow: none;
+}
+
+/* 「已设为不带」（qty = 0）区域的样式在 app.wxss —— 行程页与向导第 ⑥ 步预览共用同一套。 */
+
+/* —— P1-1 回到顶部 ——
+   注意：行程页**不是 tabBar 页**（tabBar 是 首页/好物/知识库/我的），本页没有悬浮胶囊导航，
+   故底部避让量取小值；知识库页是 tabBar 页，那边的按钮要抬到 180rpx 之上。 */
+.gotop {
+  position: fixed;
+  right: 32rpx;
+  bottom: calc(48rpx + env(safe-area-inset-bottom));
+  z-index: 950;                                  /* < tabBar 1000，> 普通内容 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);         /* 实色，不依赖 backdrop-filter */
+  border: 1rpx solid var(--glass-border);
+  box-shadow: 0 10rpx 28rpx -12rpx rgba(28, 45, 38, 0.35);
+}

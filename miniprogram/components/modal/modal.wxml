@@ -1,0 +1,10 @@
+<view wx:if="{{show}}" class="mask" bindtap="onCancel" catchtouchmove="noop">
+  <view class="dialog" catchtap="noop">
+    <view class="dlg-title">{{title}}</view>
+    <view class="dlg-body">{{content}}</view>
+    <view class="dlg-foot">
+      <view class="dlg-btn plain" bindtap="onCancel" hover-class="dlg-hv">{{cancelText}}</view>
+      <view class="dlg-btn {{danger ? 'danger' : ''}}" bindtap="onConfirm" hover-class="dlg-hv">{{confirmText}}</view>
+    </view>
+  </view>
+</view>

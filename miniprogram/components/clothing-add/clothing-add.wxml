@@ -1,0 +1,57 @@
+<view class="cwrap">
+  <!-- M18：占位文案由调用方传 trigger（衣物/化妆品各自一套），选中后不复位成已选类型 -->
+  <view class="ctrigger {{open ? 'on' : ''}}" bindtap="onToggle">
+    <text class="cph">{{trigger}}</text>
+    <icon name="chevron-down" size="28" tone="k" style="transform: rotate({{open ? 180 : 0}}deg)" />
+  </view>
+</view>
+
+<!-- 浮层：遮罩 + 定位面板（替代 Teleport to body + fixed）。
+     R5-7：必须包在 <root-portal> 里 —— 本组件渲染在 .glass 卡片内部，而 .glass 有
+     backdrop-filter，按 CSS 规范它会成为后代 position:fixed 的包含块：
+     place() 量出来的「视口坐标」会被当成「卡片内坐标」用，面板整体错位
+     （老板截图：面板跑到列表顶部，触发条却在底部）。
+     root-portal（基础库 2.25.2+，WebView/Skyline 均支持）把子树挂到页面根节点，
+     fixed 才真正相对视口定位。修复前任何「调阈值 / 滚动即关」都只是补丁。
+
+     R6 重做（老板实测两处问题）：
+       ① 列表滚不动 —— 遮罩的 catchtouchmove 会取消 touchmove 的默认行为，
+          普通 view 的 overflow-y:auto 在遮罩里滚不动；改用 <scroll-view scroll-y>
+          （滚动由组件接管，不受外层 catch 影响），类型多时（化妆品 20+ 项）必须能滚。
+       ② 选完没法编辑 —— 输入行原来排在全部类型后面，被 max-height 截掉看不见。
+          现在拆成两段：上方类型列表滚动，下方输入行**常驻**面板底部；
+          列表末尾再加一个「自定义」项，点它不关面板、直接聚焦输入行 ——
+          老板的路径「滑动找到自定义 → 点击 → 输入衣物名 → 添加」全程可走通。 -->
+<root-portal wx:if="{{open}}">
+  <view class="cmask" bindtap="close" catchtouchmove="noop">
+    <view class="cpanel {{panelTop >= 0 ? '' : 'up'}}"
+          style="{{panelTop >= 0 ? 'top:' + panelTop + 'px;' : 'bottom:' + panelBottom + 'px;'}}left:{{panelLeft}}px;width:{{panelWidth}}px;"
+          catchtap="noop">
+      <!-- M19（老板点名）：show-scrollbar + classic 滚动条样式让右侧滚动条常亮 ——
+           类型多时（化妆品 20+ 项）不亮的话，用户意识不到列表能往下滑。 -->
+      <scroll-view scroll-y show-scrollbar="{{true}}" class="clist">
+        <!-- M18：无选中高亮 —— 触发条不保留已选类型，面板里也就不存在「当前选中」 -->
+        <view wx:for="{{types}}" wx:key="*this"
+              class="copt"
+              data-t="{{item}}"
+              bindtap="onPick"
+              hover-class="copt-hover"
+              hover-stay-time="60">{{item}}</view>
+        <view class="copt copt-custom" bindtap="onPickCustom" hover-class="copt-hover">
+          <icon name="plus" size="26" tone="p" />
+          <text>自定义</text>
+        </view>
+      </scroll-view>
+
+      <view class="crow">
+        <input class="field cinput"
+               value="{{customName}}"
+               focus="{{focusInput}}"
+               placeholder="{{placeholder}}"
+               placeholder-class="cinput-ph"
+               bindinput="onInput" />
+        <view class="btn small caddbtn" bindtap="onAddCustom">添加</view>
+      </view>
+    </view>
+  </view>
+</root-portal>

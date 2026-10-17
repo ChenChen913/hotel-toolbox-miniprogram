@@ -1,0 +1,378 @@
+<view class="page">
+  <!-- R7：全局背景光斑（fixed 铺满视口，见 app.wxss 的 .bg-glow）——
+       page 级 background-image 只画第一屏，滚出后与纯色底生硬相接 -->
+  <view class="bg-glow"></view>
+
+  <!-- 顶部：返回 + 金色进度条 + N/M（R6.5：N/M 用 stepPos —— 关掉「替其他人管行李」
+       后步骤号不连续（1,2,5,6,7），用步骤号算进度会出现「5/5 还没到最后一步」） -->
+  <view class="wiz-head">
+    <view wx:if="{{stepPos > 1}}" class="icon-btn" bindtap="prev" aria-label="上一步" hover-class="icon-btn-hover">
+      <icon name="arrow-left" size="36" tone="i" />
+    </view>
+    <view wx:else class="icon-btn placeholder"></view>
+    <view class="track"><view class="track-in" style="width: {{stepPos / total * 100}}%"></view></view>
+    <text class="stepno num">{{stepPos}}<text class="stepno-total">/{{total}}</text></text>
+  </view>
+
+  <!-- ① 性别 + 管行李范围（R5-3 新增；R6 按老板反馈改版）
+       ① 男 / 女两行加大（页面内容少，行高 132rpx、字号 34、图标 48）；
+       ② 不再显示「只影响默认清单…」的说明文字（老板明确不要）；
+       ③ 新增「替其他人管行李」开关（语义见 wizard.ts 的 careOthers 注释）。 -->
+  <block wx:if="{{step === 1}}">
+    <view class="q">你的性别？<text class="qsub muted">清单会按性别适配，之后随时可改</text></view>
+    <view class="glass card">
+      <view class="picklist">
+        <view class="pickrow pickrow-lg {{gender === 'male' ? 'on' : ''}}" data-g="male" bindtap="setGender" hover-class="hv">
+          <icon name="mars" size="48" tone="p" />
+          <text class="picklabel">男</text>
+          <view class="pickcheck"><icon wx:if="{{gender === 'male'}}" name="check" size="26" tone="c" /></view>
+        </view>
+        <view class="pickrow pickrow-lg {{gender === 'female' ? 'on' : ''}}" data-g="female" bindtap="setGender" hover-class="hv">
+          <icon name="venus" size="48" tone="p" />
+          <text class="picklabel">女</text>
+          <view class="pickcheck"><icon wx:if="{{gender === 'female'}}" name="check" size="26" tone="c" /></view>
+        </view>
+      </view>
+
+      <!-- R6：替其他人管行李。这个小工具一般是一个人用 —— 多人入住时记录
+           儿童/老人/同行者的物品反而分不清谁用什么，是否替他人备物品交给用户决定。
+           R6.5：说明扩成两行（老板要求把连锁关系讲明白）——
+           第一行讲「后续步骤」的变化，第二行讲「清单」的变化，与 toggleCareOthers 一一对应。 -->
+      <view class="srow carerow">
+        <view class="slabel"><icon name="users" size="34" tone="p" />替其他人管行李</view>
+        <toggle value="{{careOthers}}" bind:change="toggleCareOthers" />
+      </view>
+      <view wx:if="{{careOthers}}" class="fxline">开 · 后面照常询问：几个人入住、和谁同行、有没有孩子老人</view>
+      <view wx:if="{{careOthers}}" class="fxline">清单按所有入住人一起准备 —— 每人份按真实人数算，儿童、老人物品一并列入</view>
+      <view wx:if="{{!careOthers}}" class="fxline">关 · 后面不再问同行的事：跳过「人数」和「同行人员」，直接去选住宿情况</view>
+      <view wx:if="{{!careOthers}}" class="fxline">清单只按你一个人准备 —— 所有「每人份」按 1 份算，儿童、老人、同行者的物品不会出现</view>
+    </view>
+  </block>
+
+  <!-- ② 日期与晚数 -->
+  <!-- 注意：必须选日期才能「下一步」。没选时按钮灰显（.btn-off），next() 里再兜一层。
+       不拦的话空日期会存成一条 date 为空的行程，而 suggestedStage 对空日期返回 prep，
+       这条行程就永远卡在「准备」阶段。 -->
+  <block wx:elif="{{step === 2}}">
+    <view class="q">什么时候入住？</view>
+    <view class="glass card">
+      <view class="datebig num">{{dateLabel}}</view>
+      <text wx:if="{{leaveLabel}}" class="muted leave">退房 {{leaveLabel}} · 共 {{draft.nights}} 晚</text>
+      <text wx:else class="muted leave">先挑一个日期，才能生成清单</text>
+
+      <view class="quickrow">
+        <view class="qchip {{quickOn[0] ? 'on' : ''}}" data-d="0" bindtap="setOffset" hover-class="qchip-hover">今天</view>
+        <view class="qchip {{quickOn[1] ? 'on' : ''}}" data-d="1" bindtap="setOffset" hover-class="qchip-hover">明天</view>
+        <view class="qchip {{quickOn[2] ? 'on' : ''}}" data-d="2" bindtap="setOffset" hover-class="qchip-hover">后天</view>
+        <view class="qchip {{customDate ? 'on' : ''}}" bindtap="toggleCustomDate" hover-class="qchip-hover">自选日期</view>
+      </view>
+
+      <view wx:if="{{customDate}}" class="dslot">
+        <date-picker value="{{draft.date}}" bind:change="onPickDate" />
+      </view>
+
+      <view class="nightsrow">
+        <view class="fl"><icon name="compass" size="30" tone="p" />住几晚</view>
+        <stepper value="{{draft.nights}}" min="{{1}}" max="{{30}}" unit="晚" bind:change="onNights" />
+      </view>
+      <text class="muted hint">晚数 ≥ 4 会自动加入长住物品（洗衣、晾衣）。</text>
+    </view>
+  </block>
+
+  <!-- ③ 人数 -->
+  <!-- 老板反馈：原来三个按钮横着挤在一行、「3 人及以上」顶到卡片边缘，下面还留一大片空白。
+       改成纵向列表，一行一个；图标与人数严格对应（1 人 user / 2 人 users / 3 人及以上 users-3）。
+       「3 人及以上」是特殊情况 —— 选中后会在列表下方展开「真实人数」步进器，
+       所以给它单独一段可展开区，与列表拉开间距，不让内容贴边或被裁。 -->
+  <block wx:elif="{{step === 3}}">
+    <view class="q">这次有几个人入住？</view>
+    <view class="glass card">
+      <view class="picklist">
+        <view class="pickrow {{draft.adults === 1 ? 'on' : ''}}" data-n="1" bindtap="setAdults" hover-class="hv">
+          <icon name="user" size="38" tone="p" />
+          <text class="picklabel">1 人</text>
+          <view class="pickcheck"><icon wx:if="{{draft.adults === 1}}" name="check" size="24" tone="c" /></view>
+        </view>
+        <view class="pickrow {{draft.adults === 2 ? 'on' : ''}}" data-n="2" bindtap="setAdults" hover-class="hv">
+          <icon name="users" size="38" tone="p" />
+          <text class="picklabel">2 人</text>
+          <view class="pickcheck"><icon wx:if="{{draft.adults === 2}}" name="check" size="24" tone="c" /></view>
+        </view>
+        <view class="pickrow {{draft.adults >= 3 ? 'on' : ''}}" data-n="3" bindtap="setAdults" hover-class="hv">
+          <icon name="users-3" size="38" tone="p" />
+          <text class="picklabel">3 人及以上</text>
+          <view class="pickcheck"><icon wx:if="{{draft.adults >= 3}}" name="check" size="24" tone="c" /></view>
+        </view>
+      </view>
+
+      <block wx:if="{{draft.adults >= 3}}">
+        <view class="pickexpand">
+          <view class="fxline">几人入住就按几人准备，请确认真实人数</view>
+          <view class="nightsrow nightsrow-end">
+            <stepper value="{{draft.adults}}" min="{{3}}" max="{{10}}" unit="人" bind:change="onAdults" />
+          </view>
+        </view>
+      </block>
+    </view>
+  </block>
+
+  <!-- ④ 同行人员（R4-1 / R4-2 / R4-3 重构；R5-3 起步号 ③ → ④）
+       老板的两条意见：
+         ① 选项太少 —— 只有儿童/老人/宠物，2 人入住时连「和谁一起」都没得选
+         ② 账对不上 —— 2 人入住还能选「1 老人 + 2 儿童」
+       改法：自己占 1 位，其余都是同行者，三者之和不得超过 adults − 1。
+       老人从「开关」改成「计数」，因为名额约束要的是真实人数（源的 elderly 布尔由它派生）。 -->
+  <block wx:elif="{{step === 4}}">
+    <view class="q">{{step3Q}}<text wx:if="{{showChildren}}" class="qsub muted">你自己占 1 位，其余都是同行者</text></view>
+    <view class="glass card">
+
+      <block wx:if="{{showChildren}}">
+        <!-- 名额账：先说清楚还能带几个人，用户才不会乱点 -->
+        <view class="budget">
+          <text class="num budget-n">本次 {{draft.adults}} 人</text>
+          <text class="muted"> · 你占 1 位 · 还剩</text>
+          <text class="num budget-left">{{budget.left}}</text>
+          <text class="muted"> 个同行名额</text>
+        </view>
+
+        <view class="nightsrow">
+          <view class="fl"><icon name="user" size="30" tone="p" />成人同行</view>
+          <stepper value="{{adultsWith}}" min="{{0}}" max="{{maxAdult}}" unit="人" bind:change="onAdultsWith" />
+        </view>
+
+        <view class="nightsrow">
+          <view class="fl"><icon name="users" size="30" tone="p" />儿童</view>
+          <stepper value="{{draft.children}}" min="{{0}}" max="{{maxChild}}" unit="个" bind:change="onChildren" />
+        </view>
+        <block wx:if="{{draft.children > 0}}">
+          <view class="fl fl-gap">年龄段</view>
+          <view class="chips">
+            <view wx:for="{{ages}}" wx:key="v"
+                  class="chip {{draft.childAge === item.v ? 'on' : ''}}"
+                  data-v="{{item.v}}" bindtap="setChildAge">{{item.t}}</view>
+          </view>
+          <view wx:if="{{fxChildren}}" class="fxline">＋将加入：{{fxChildren}}</view>
+        </block>
+
+        <view class="nightsrow">
+          <view class="fl"><icon name="users-3" size="30" tone="p" />老人</view>
+          <stepper value="{{elderlyCount}}" min="{{0}}" max="{{maxElderly}}" unit="位" bind:change="onElderlyCount" />
+        </view>
+        <view wx:if="{{fxElderly}}" class="fxline">＋将加入：{{fxElderly}}</view>
+
+        <!-- 名额用尽时的说明（不是错误，是提示） -->
+        <view wx:if="{{companionNote}}" class="fxline warn">{{companionNote}}</view>
+
+        <!-- 同行关系：只有真的带了成人才问「和谁一起」。
+             R5-4：这是全向导**唯一**的关系选择入口 —— 原第 ④ 步的「和谁一起住」已删，
+             「上一步选了情侣、这一步还能改成同事」的自相矛盾从此不存在。
+             关系带来的物品变化提示也搬到这里（与 fxChildren 同款模式）。 -->
+        <block wx:if="{{adultsWith > 0}}">
+          <view class="fl fl-gap">和你同行的是什么关系？</view>
+          <view class="chips">
+            <view wx:for="{{companionRelations}}" wx:key="*this"
+                  class="chip {{relation === item ? 'on' : ''}}"
+                  data-r="{{item}}" bindtap="setCompanionRelation">{{item}}</view>
+          </view>
+          <view wx:if="{{fxRelation}}" class="fxline">＋将加入：{{fxRelation}}</view>
+        </block>
+      </block>
+
+      <!-- 宠物：不占名额，两种情况下都显示（1 人入住时也就只剩这一项） -->
+      <view class="switch-rows {{showChildren ? '' : 'switch-rows-flush'}}">
+        <view class="srow">
+          <text class="slabel">有宠物同行<text wx:if="{{draft.pet}}" class="muted">（用品稍后自行添加）</text></text>
+          <toggle value="{{draft.pet}}" bind:change="togglePet" />
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- ⑤ 住宿情况（R5-9）
+       老板三条要求：① 每个标签配扩展提示（机制与第 ⑤ 步「偏好」一致）；
+       ② 扩充到 7 个标签，必须含「其他」（用户可能注重保密）；
+       ③ 一列排放 —— 直接复用第 ② 步的 .picklist / .pickrow（88rpx 触摸目标），不新写样式。
+       R5-4：原「和谁一起住」整块删除，关系以第 ③ 步为唯一来源。
+       标签的图标 tone="p"：bed-double / house / sliders 的 p 档已补进 gen-icons.py，
+       少一档就是静默空白（npm run check:icons 守护）。 -->
+  <block wx:elif="{{step === 5}}">
+    <view class="q">这次住宿属于哪种情况？</view>
+    <view class="glass card">
+      <view class="picklist">
+        <view wx:for="{{purposesExt}}" wx:key="k"
+              class="pickrow {{purposeExt === item.k ? 'on' : ''}}"
+              data-k="{{item.k}}" bindtap="setPurpose" hover-class="hv">
+          <icon name="{{item.icon}}" size="38" tone="p" />
+          <text class="picklabel">{{item.k}}</text>
+          <view class="pickcheck"><icon wx:if="{{purposeExt === item.k}}" name="check" size="24" tone="c" /></view>
+        </view>
+      </view>
+      <!-- 住宿情况是单选：提示行放整块列表下方（不放每行下面），
+           切换标签时不会撑动其它行的位置 -->
+      <view wx:if="{{purposeFx}}" class="fxline">{{purposeFx}}</view>
+    </view>
+  </block>
+
+  <!-- ⑥ 偏好（R5-3 起步号 ⑤ → ⑥；新增仅女性可见的「是否处于经期」开关）
+       老板反馈：这一段的标签与图标偏小，图标由 30 放大到 34（文字走 .slabel 的字号）。
+       注意每个图标的 tone="p"（pine）都必须在 tools/gen-icons.py 的 VARIANTS 里有对应档位，
+       否则 class 不存在、图标静默渲染成空白 —— 校验命令 npm run check:icons。 -->
+  <block wx:elif="{{step === 6}}">
+    <!-- M18 全选（老板建议）/ M19 补全（老板点名）：符合条件的往往一大串，逐个点太费劲。
+         两态按钮：全开时变「取消全选」。女性的「是否处于经期」也是这一页的开关，
+         全选/取消时一并触发，不再是漏网之鱼；男性没有经期开关，不参与判定。 -->
+    <view class="q qhead">
+      <text>你在意哪些方面？</text>
+      <text class="selall" bindtap="toggleAllPrefs" hover-class="hv">{{prefsAll ? '取消全选' : '全选'}}</text>
+    </view>
+    <text class="qsub muted">选中的会加进清单，之后随时可改</text>
+    <view class="glass card">
+      <view class="srow">
+        <view class="slabel"><icon name="moon" size="34" tone="p" />睡眠敏感</view>
+        <toggle value="{{draft.prefs.sleep}}" bind:change="togglePref" data-k="sleep" />
+      </view>
+      <view wx:if="{{draft.prefs.sleep}}" class="fxline">＋将加入：眼罩、耳塞</view>
+
+      <view class="srow">
+        <view class="slabel"><icon name="droplets" size="34" tone="p" />在意卫生</view>
+        <toggle value="{{draft.prefs.hygiene}}" bind:change="togglePref" data-k="hygiene" />
+      </view>
+      <view wx:if="{{draft.prefs.hygiene}}" class="fxline">＋将加入：一次性床单/隔脏睡袋</view>
+
+      <view class="srow">
+        <view class="slabel"><icon name="bug" size="34" tone="p" />蚊虫季节</view>
+        <toggle value="{{draft.prefs.mosquito}}" bind:change="togglePref" data-k="mosquito" />
+      </view>
+      <view wx:if="{{draft.prefs.mosquito}}" class="fxline">＋将加入：驱蚊液/花露水</view>
+
+      <view class="srow">
+        <view class="slabel"><icon name="plug" size="34" tone="p" />电子设备多</view>
+        <toggle value="{{draft.prefs.gadgets}}" bind:change="togglePref" data-k="gadgets" />
+      </view>
+      <view wx:if="{{draft.prefs.gadgets}}" class="fxline">＋将加入：氮化镓多口充电器、USB 数据阻断器、魔方插座</view>
+
+      <!-- R6：第 ⑤ 步住宿情况已有「学习培训」标签（物品触发与这里重复），故「培训 / 学习」
+           开关从偏好页删除 —— 学习类物品唯一由住宿情况的「学习培训」触发（老数据
+           study 字段仍兼容，见 core/extra.ts 的 x_study_*）。 -->
+
+      <!-- R5-5：是否处于经期。只给女性渲染（男性与性别未知都不出现这个开关），
+           打开时卫生巾升级为「必带」并按晚数算数量，同时加入止痛药。
+           性别切回男性时 period 会被一起清掉（setGender），不会留下脏状态。 -->
+      <block wx:if="{{gender === 'female'}}">
+        <view class="srow">
+          <view class="slabel"><icon name="droplets" size="34" tone="p" />是否处于经期</view>
+          <toggle value="{{period}}" bind:change="togglePeriod" />
+        </view>
+        <view wx:if="{{period}}" class="fxline">＋将加入：卫生巾/护垫（必带）、止痛药</view>
+      </block>
+    </view>
+  </block>
+
+  <!-- ⑦ 确认清单 -->
+  <block wx:else>
+    <view class="q">确认清单<text class="qsub muted">可改数量、可删，保存后也能随时加东西</text></view>
+
+    <!-- 区块 A · 你的选择如何影响清单（默认收起，点标题栏展开）
+         标题原为「这些选择如何影响清单」，老板要求更言简意赅；
+         改用第二人称，与同页「你在意哪些方面？」「还有一些东西，只有你自己知道」保持一致。 -->
+    <view class="glass card fxcards">
+      <view class="think-title fx-head" bindtap="toggleFx" hover-class="hv">
+        <icon name="sliders" size="30" />
+        <text class="grow fx-title">你的选择如何影响清单</text>
+        <view class="fx-arrow {{fxOpen ? '' : 'rot'}}">
+          <icon name="chevron-down" size="28" tone="k" />
+        </view>
+      </view>
+      <block wx:if="{{fxOpen}}">
+        <view wx:for="{{conditionEffects}}" wx:key="cond" class="hint-row">
+          <text class="fxcond">{{item.cond}}</text>
+          <text class="muted fxitems">{{item.items}}</text>
+        </view>
+        <view class="hint-row">
+          <text class="fxcond">数量规则</text>
+          <text class="muted fxitems">消耗品 = 人数 ×（晚数 + 1），上衣每人封顶 4 件，均可手动调整</text>
+        </view>
+      </block>
+    </view>
+
+    <!-- 区块 B · 清单预览（按 CAT_ORDER 分组，物品行不可勾选） -->
+    <block wx:for="{{groups}}" wx:key="cat">
+      <view class="sec-label">{{item.cat}}</view>
+      <view class="glass card">
+        <item-row wx:for="{{item.items}}" wx:for-item="it" wx:key="_i"
+                  item="{{it}}"
+                  idx="{{it._i}}"
+                  editable="{{true}}"
+                  bind:toggle="onPreviewToggle"
+                  bind:qty="onItemQty" />
+        <!-- R5-6：衣物 + 化妆品共用泛化后的 clothing-add（types/cat/placeholder 由调用方传）。
+             id 必须各自唯一，事件路由靠 data-cat（见 wizard.ts 的 addTyped）。 -->
+        <clothing-add id="clothingAdd" wx:if="{{item.cat === '衣物'}}" cat="衣物" data-cat="衣物"
+                      trigger="选择衣物类型…" placeholder="输入衣物名称，如：防晒衣"
+                      bind:add="addTyped" />
+        <clothing-add id="cosmeticAdd" wx:if="{{item.cat === '化妆品'}}" cat="化妆品" data-cat="化妆品"
+                      types="{{cosmeticTypes}}" trigger="选择化妆品类型…" placeholder="输入化妆品名称，如：面膜"
+                      bind:add="addTyped" />
+      </view>
+    </block>
+
+    <!-- 已设为不带（qty = 0）的项。与行程页同一套口径：不占清单位置，收在这里可恢复。
+         样式在 app.wxss（.zero-*），两个页面共用。 -->
+    <view wx:if="{{zeroPreview.length}}" class="zero-zone">
+      <view class="zero-head" bindtap="toggleZero" hover-class="hv">
+        <text class="grow zero-title">已设为不带（{{zeroPreview.length}} 项）</text>
+        <view class="fx-arrow {{zeroOpen ? '' : 'rot'}}">
+          <icon name="chevron-down" size="30" tone="k" />
+        </view>
+      </view>
+      <view wx:if="{{zeroOpen}}" class="glass card">
+        <view wx:for="{{zeroPreview}}" wx:for-item="z" wx:key="_i" class="zrow">
+          <text class="grow zname">{{z.name}}</text>
+          <view class="zrestore" data-i="{{z._i}}" bindtap="restoreZero" hover-class="hv">恢复</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 区块 C · 还有一些东西，只有你自己知道 -->
+    <view class="glass card think">
+      <view class="think-title"><icon name="sliders" size="30" />还有一些东西，只有你自己知道</view>
+      <view wx:for="{{hints}}" wx:key="text" class="hint-row">
+        <icon name="{{item.icon}}" size="30" tone="p" />
+        <text class="muted">{{item.text}}</text>
+      </view>
+      <view class="addrow">
+        <input class="field growfield"
+               value="{{customName}}"
+               placeholder="物品名，如：相机电池"
+               placeholder-class="field-ph"
+               bindinput="onCustomName" />
+        <input class="field qtyin num"
+               type="number"
+               value="{{customQty}}"
+               bindinput="onCustomQty" />
+        <view class="btn small addbtn" bindtap="addCustom">
+          <icon name="plus" size="30" tone="c" />
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 底部动作：固定在视口底部的安全区底栏（P0-4），按钮不再随内容高度上下跳。
+       z-index 900 必须 < tabBar 的 1000；背景用实色，不依赖 backdrop-filter（安卓不支持）。
+       注意：最后一步的判定用 stepPos（位置）而不是 step（步骤号）—— R6.5 起关掉
+       「替其他人管行李」后步骤号不连续，step !== total 会把「保存」页误判成中间步。
+       这里用 !== 而不是 <，因为 WXML 属性值里出现裸 < 会被解析器误判。 -->
+  <view class="wiz-foot">
+    <view wx:if="{{stepPos !== total}}" class="btn {{nextReady ? '' : 'btn-off'}}" bindtap="next">
+      {{step === 1 ? '开始' : '下一步'}}
+      <icon name="chevron-right" size="30" tone="c" />
+    </view>
+    <block wx:else>
+      <view class="btn" bindtap="save">保存这次入住</view>
+      <view class="btn plain btn-plain" bindtap="prev">返回修改</view>
+    </block>
+  </view>
+  <!-- R4-4：数量归零浮窗。时长由 TS 侧控制（core/toast.ts 的 TOAST_MS，当前 1500ms） -->
+  <toast show="{{toastShow}}" text="{{toastText}}" />
+
+</view>

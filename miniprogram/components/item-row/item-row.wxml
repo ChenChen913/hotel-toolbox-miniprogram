@@ -1,0 +1,60 @@
+<!-- R5-2：根节点整行可点 —— 点名称/标签/空白都等于点勾选框。
+     行内其它可点元素必须用 catchtap 截住冒泡（catch 只挡「继续向上冒泡」，
+     元素自己的 handler 照常执行），否则点步进器会连带触发勾选。
+     onToggle 内部对 qty === 0 直接 return（不带的东西不可勾，与源实现一致）。 -->
+<view class="row {{item.done ? 'done' : ''}} {{item.qty === 0 ? 'zero' : ''}} {{showGear ? 'wrap' : ''}}"
+      bindtap="onToggle" hover-class="hv">
+  <!-- P1-6：右上角虚化对勾水印。
+       必须是常驻节点、靠 .row.done 的 CSS 切 opacity —— 用 wx:if 会销毁重建节点，
+       opacity 过渡失效，看起来是「啪一下跳出来」而不是淡入。
+       它是纯装饰，已设 pointer-events:none，不会挡住步进器的点击。 -->
+  <text class="row-check">✓</text>
+
+  <!-- catchtap：点勾选框只触发一次（若用 bindtap，勾选框自己的 + 冒泡到根的会触发两次） -->
+  <view wx:if="{{editable}}"
+        class="tick {{item.done ? 'on' : ''}} {{item.qty === 0 ? 'off' : ''}}"
+        catchtap="onToggle">
+    <icon wx:if="{{item.done}}" name="check" size="26" tone="c" />
+  </view>
+
+  <view class="grow">
+    <view class="name">{{item.name}}</view>
+    <view class="meta">
+      <text>{{item.users}}</text>
+      <text wx:if="{{item.qty === 0}}" class="tag zero">不带</text>
+      <!-- M18 标签审核：臆测类 prep（家里带/建议购买/到店购买）不显示，只渲染
+           有事实依据的 必带/推荐/可选/自定义 —— showPrepTag 由 JS 预计算（WXML 不写裸比较） -->
+      <text wx:elif="{{showPrepTag}}" class="tag {{tagCls}}">{{item.prep}}</text>
+
+      <!-- 使用人下拉：多人行程时把物品绑定到人（源实现 assignOptions + <select>）。
+           catchtap：picker 弹出层的点选不该连带勾选整行 -->
+      <picker wx:if="{{showAssign}}"
+              class="assign"
+              mode="selector"
+              range="{{opts}}"
+              value="{{assignIdx}}"
+              catchtap="noop"
+              bindchange="onAssign">
+        <view class="assign-in">
+          <text>{{opts[assignIdx]}}</text>
+          <icon name="chevron-down" size="24" tone="k" />
+        </view>
+      </picker>
+
+      <!-- 好物入口：只有来自 ITEMS 的物品才有 itemId（源实现 v-if="item.itemId"） -->
+      <view wx:if="{{hasGear}}" class="gearbtn {{showGear ? 'open' : ''}}"
+            catchtap="toggleGear" hover-class="hv">{{gearLabel}}</view>
+    </view>
+  </view>
+
+  <!-- catchtap 挂在自定义组件标签上：拦住 stepper 内部冒泡出来的 tap，加减数量不切换勾选 -->
+  <stepper value="{{item.qty}}" min="{{0}}" unit="{{item.unit}}" catchtap="noop" bind:change="onQty" />
+
+  <!-- M19（老板点名）：行尾删除按钮退役 —— stepper 减到 0 即收进「已设为不带」，
+       等效删除且可反悔，单独的删除键属于多余入口；源实现此处为 Trash2 图标，不再移植。 -->
+
+  <gear-panel wx:if="{{showGear}}"
+              name="{{item.name}}"
+              cat="{{item.cat}}"
+              bind:change="onGearChange" />
+</view>

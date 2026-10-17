@@ -1,0 +1,39 @@
+/* 小浮窗（R4-4）
+   组件样式默认隔离，但 CSS 自定义属性（--ink / --pine / --glass-border…）是**继承属性**，
+   会从 page 传进来，所以下面直接复用设计令牌，配色与全站一致。 */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 240rpx;                /* 避开固定底栏（约 160rpx + 安全区） */
+  z-index: 1050;                 /* 底栏 900 / 回到顶部 950 之上，模态 1100 之下 */
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  /* R5-8：由写死上限改为视口相对值 —— 内容窄就单行（fixed 且无显式 width，
+     宽度按内容收缩），内容宽撑到上限再换行，两端各留 48rpx 呼吸位，自动适配所有屏宽。
+     不用 width: max-content（部分机型支持不稳），也不用 JS 算宽。 */
+  max-width: calc(100vw - 96rpx);
+  padding: 20rpx 30rpx;
+  border-radius: 24rpx;
+  /* 玻璃卡的「降级底色」写法：给足半透明实色 + 内高光，不依赖 backdrop-filter */
+  background: rgba(252, 251, 248, 0.96);
+  border: 1rpx solid var(--glass-border);
+  box-shadow: 0 20rpx 46rpx -20rpx rgba(28, 45, 38, 0.45), inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+  font-size: 26rpx;
+  line-height: 1.45;
+  color: var(--ink);
+  /* 常驻节点 + CSS 切换：进退场都有动画（wx:if 会直接销毁节点，退场就没有了） */
+  opacity: 0;
+  transform: translate(-50%, 26rpx);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  pointer-events: none;          /* 它只是提示，不该挡住下面的步进器 */
+}
+.toast.on {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.toast-t {
+  /* 文案（「已记录到下方「已设为不带」，随时可恢复」）在窄屏上要能换行 */
+  white-space: normal;
+}

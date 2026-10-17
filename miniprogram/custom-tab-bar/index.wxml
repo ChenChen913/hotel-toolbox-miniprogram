@@ -1,0 +1,13 @@
+<view class="tbwrap">
+  <view class="navbar">
+    <view wx:for="{{tabs}}"
+          wx:key="url"
+          class="tab {{selected === index ? 'on' : ''}}"
+          data-i="{{index}}"
+          bindtap="onTab"
+          hover-class="none">
+      <icon name="{{item.icon}}" size="34" tone="{{selected === index ? 'd' : ''}}" />
+      <text class="tbtext">{{item.text}}</text>
+    </view>
+  </view>
+</view>

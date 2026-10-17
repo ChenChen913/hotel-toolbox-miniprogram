@@ -1,0 +1,98 @@
+/* GearPanel —— 源实现 src/components/GearPanel.vue 的 scoped 样式（px → rpx 按 2 倍换算） */
+.gearpanel {
+  width: 100%;
+  margin-top: 4rpx;
+  padding: 20rpx 24rpx;
+  box-sizing: border-box;
+  border-radius: 24rpx;
+  background: rgba(169, 133, 61, 0.07);
+  border: 2rpx dashed rgba(169, 133, 61, 0.35);
+}
+
+.gptitle {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 4rpx;
+  font-size: 25rpx;
+  font-weight: 650;
+  color: #8a6a2c;
+}
+.gpfoot {
+  margin-left: auto;
+  font-size: 22rpx;
+  color: var(--ink-3);
+  font-weight: 400;
+}
+
+.gearitem {
+  display: flex;
+  align-items: baseline;
+  padding: 10rpx 0;
+  border-bottom: 2rpx dashed var(--hairline);
+}
+.gearitem:last-of-type { border-bottom: 0; }
+
+.gname {
+  font-size: 27rpx;
+  font-weight: 650;
+  color: var(--ink);
+}
+.gbrand {
+  flex: 1;
+  min-width: 0;
+  margin-left: 18rpx;
+  font-size: 25rpx;
+  color: var(--ink-2);
+}
+.gbrand-empty {
+  color: var(--ink-3);
+}
+.pickdel {
+  margin-left: auto;
+  align-self: center;
+  padding: 4rpx 8rpx;
+  font-size: 24rpx;
+  color: var(--ink-3);
+}
+.pickdel:active { color: var(--red); }
+
+.gpempty {
+  margin: 8rpx 0 4rpx;
+  font-size: 24rpx;
+  color: var(--ink-2);
+}
+
+.gearadd {
+  display: flex;
+  align-items: center;
+  margin-top: 14rpx;
+}
+.ginput {
+  margin-right: 12rpx;
+  min-height: 64rpx;
+  padding: 8rpx 16rpx;
+  font-size: 25rpx;
+  border: 2rpx solid var(--line);
+  border-radius: 16rpx;
+  background: #fff;
+}
+.gcancel {
+  padding: 4rpx 8rpx;
+  font-size: 25rpx;
+  color: var(--ink-2);
+}
+
+.gactions {
+  display: flex;
+  align-items: center;
+  margin-top: 18rpx;
+}
+.gaction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56rpx;
+  padding: 4rpx 8rpx;
+  font-size: 25rpx;
+  color: var(--pine-deep);
+}

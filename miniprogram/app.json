@@ -1,0 +1,36 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/gear/gear",
+    "pages/knowledge/knowledge",
+    "pages/mine/mine",
+    "pages/wizard/wizard",
+    "pages/stay/stay"
+  ],
+  "window": {
+    "navigationBarTitleText": "酒店入住工具箱",
+    "navigationBarBackgroundColor": "#e9e6df",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#e9e6df",
+    "backgroundColorTop": "#e9e6df",
+    "backgroundColorBottom": "#e9e6df",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#717a73",
+    "selectedColor": "#123f33",
+    "backgroundColor": "#f6f4ef",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/home/home", "text": "首页" },
+      { "pagePath": "pages/gear/gear", "text": "好物" },
+      { "pagePath": "pages/knowledge/knowledge", "text": "知识库" },
+      { "pagePath": "pages/mine/mine", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "darkmode": false,
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,16 @@
+# 微信小程序打包产物之外的本机工程文件
+node_modules/
+.vscode/
+*.log
+vitest.config.ts.timestamp-*
+.DS_Store
+.workbuddy-ai/
+
+# 微信开发者工具的个人私有配置（不提交）
+project.private.config.json
+
+# 设计参考截图（仅本地留档）
+几人入住.jpg
+时间入住.jpg
+色块拼凑.jpg
+衣物异常.jpg

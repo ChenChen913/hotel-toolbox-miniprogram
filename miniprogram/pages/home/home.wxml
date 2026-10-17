@@ -1,0 +1,70 @@
+<view class="page">
+  <!-- R7：全局背景光斑（fixed 铺满视口，见 app.wxss 的 .bg-glow）——
+       page 级 background-image 只画第一屏，滚出后与纯色底生硬相接 -->
+  <view class="bg-glow"></view>
+
+  <!-- 刊头：编辑风，无底色卡片 -->
+  <view class="masthead">
+    <text class="overline">Hotel Stay Toolbox</text>
+    <text class="display serif">酒店入住工具箱</text>
+    <view class="gold-rule"></view>
+    <text class="tagline">让每一次入住，都少一点遗漏，多一点准备</text>
+    <view class="btn createbtn" bindtap="goWizard">
+      <icon name="plus" size="32" tone="c" />创建一次入住
+      <view class="createbtn-chev"><icon name="chevron-right" size="30" tone="c" /></view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{!hasStays}}" class="empty">
+    <text class="empty-line serif">旅程，从一次从容的入住开始</text>
+    <text class="muted">回答 5 个小问题，生成这次入住的准备清单（含数量）</text>
+    <text class="muted dim">数据只保存在本机</text>
+  </view>
+
+  <block wx:if="{{hasStays}}">
+    <!-- 统计条 -->
+    <view class="statrow glass">
+      <view class="stat"><text class="num">{{stays.length}}</text><text class="statlabel">次入住</text></view>
+      <view class="vsep"></view>
+      <view class="stat"><text class="num">{{totalNights}}</text><text class="statlabel">晚住宿</text></view>
+      <view class="vsep"></view>
+      <view class="stat"><text class="num">{{avgPacked}}<text class="pctsign">%</text></text><text class="statlabel">平均备齐</text></view>
+    </view>
+
+    <!-- 区块头 + 复制上次 -->
+    <view class="sechead">
+      <text class="sec-label sec-label-inline">最近的入住</text>
+      <view class="copylink" bindtap="copyLast">
+        <icon name="copy" size="26" />复制上次
+      </view>
+    </view>
+
+    <!-- 行程卡（房卡登记簿风格） -->
+    <view wx:for="{{stays}}" wx:key="id" class="staycard glass" data-id="{{item.id}}" bindtap="openStay">
+      <view class="key num">{{item.no}}</view>
+      <view class="grow">
+        <view class="sc-date">
+          <text class="num">{{item.dateLabel}}</text>
+          <text class="nights"> · {{item.nights}} 晚</text>
+        </view>
+        <view class="meta muted">{{item.meta}}</view>
+        <view class="miniline"><view class="miniline-in" style="width: {{item.pct}}%"></view></view>
+        <view class="tiny num">{{item.done}} / {{item.total}} 已备齐</view>
+      </view>
+      <view class="sc-side">
+        <text wx:if="{{item.phase}}" class="phase">{{item.phase}}</text>
+        <icon class="chev" name="chevron-right" size="30" tone="k" />
+      </view>
+    </view>
+  </block>
+
+  <!-- 常驻提示：06 §3 要求首页明确告知数据只存本机（有行程时也要看得到） -->
+  <view class="localnote">
+    <icon name="shield" size="26" tone="k" />数据只保存在本机 · 不上传、不联网
+  </view>
+
+  <!-- 备份与恢复已搬到「我的」页（E1）：放在首页最底部发现率太低，
+       而隐私/协议类内容需要一个稳定入口，故统一收拢到「我的」。 -->
+
+</view>

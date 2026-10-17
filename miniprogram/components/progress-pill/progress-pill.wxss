@@ -1,0 +1,25 @@
+.pill {
+  margin: 24rpx 4rpx 8rpx;
+}
+.prog {
+  height: 16rpx;
+  border-radius: 99rpx;
+  background: rgba(35, 41, 37, 0.09);
+  overflow: hidden;
+}
+.fill {
+  height: 100%;
+  border-radius: 99rpx;
+  background: linear-gradient(90deg, #2c7c66, var(--pine-deep));
+  transition: width 0.25s ease-out;
+}
+.text {
+  margin-top: 14rpx;
+  font-size: 25rpx;
+  color: var(--ink-2);
+}
+.dn {
+  font-size: 32rpx;
+  font-weight: 650;
+  color: var(--pine-deep);
+}

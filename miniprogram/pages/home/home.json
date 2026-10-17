@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "酒店入住工具箱",
+  "usingComponents": {
+    "icon": "/components/icon/icon"
+  }
+}

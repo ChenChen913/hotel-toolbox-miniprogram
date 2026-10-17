@@ -1,0 +1,10 @@
+<view class="stepper">
+  <view class="stwrap" data-d="{{-1}}" bindtap="onStep" hover-class="stwrap-hover" hover-stay-time="80">
+    <icon name="minus" size="30" tone="{{minusOff ? 'k' : 'd'}}" />
+  </view>
+  <text class="val num">{{value}}</text>
+  <view class="stwrap" data-d="{{1}}" bindtap="onStep" hover-class="stwrap-hover" hover-stay-time="80">
+    <icon name="plus" size="30" tone="{{plusOff ? 'k' : 'd'}}" />
+  </view>
+  <text wx:if="{{unit}}" class="unit">{{unit}}</text>
+</view>

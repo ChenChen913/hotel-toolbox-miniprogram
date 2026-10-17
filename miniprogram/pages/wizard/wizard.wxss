@@ -1,0 +1,420 @@
+/* 源实现：src/components/WizardView.vue（1px ≈ 2rpx） */
+
+/* —— 页面容器 —— */
+/* P0-4：底栏是 fixed 的，必须给 .page 留出底部空间，否则最后一个分组会被永久挡住。
+   覆盖 app.wxss 的基础值（页面 wxss 加载更晚，同权重下生效）。 */
+.page {
+  padding: 0 32rpx calc(240rpx + env(safe-area-inset-bottom));
+}
+
+/* P0-4：底部动作底栏——固定在视口底部，切步骤时按钮位置纹丝不动 */
+.wiz-foot {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 900;                              /* 必须 < tabBar 的 1000 */
+  display: flex;
+  flex-direction: column;                    /* 第 6 步两个按钮纵向并排 */
+  gap: 16rpx;
+  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: rgba(233, 230, 223, 0.92);     /* --bg 的实色版；不用玻璃：安卓 backdrop-filter 不可靠 */
+  border-top: 1rpx solid var(--hairline);
+}
+
+/* —— 头部 —— */
+.wiz-head {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+  margin: 16rpx 0 36rpx;
+}
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88rpx;
+  height: 88rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: var(--ink-2);
+  font-size: 48rpx;
+  line-height: 1;
+}
+.icon-btn-hover {
+  background: rgba(28, 90, 74, 0.08);
+}
+.icon-btn.placeholder {
+  width: 88rpx;
+}
+.track {
+  flex: 1;
+  height: 8rpx;
+  border-radius: 999rpx;
+  background: rgba(35, 41, 37, 0.1);
+  overflow: hidden;
+}
+.track-in {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), #c8a95c);
+  border-radius: 999rpx;
+  transition: width 0.25s ease;
+}
+.stepno {
+  font-size: 30rpx;
+  font-weight: 650;
+  color: var(--pine-deep);
+}
+.stepno-total {
+  color: var(--ink-3);
+  font-weight: 400;
+  font-size: 24rpx;
+}
+
+/* —— 问句 —— */
+.q {
+  font-size: 42rpx;
+  margin: 12rpx 4rpx 28rpx;
+  font-weight: 650;
+  color: var(--ink);
+}
+.qhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;   /* qsub 移出后由它自己管间距 */
+}
+/* M19 全选按钮醒目化（老板反馈纯文字链接太隐蔽）：从文字链升级为
+   胶囊按钮 —— 底色 + 描边 + 加大字号加粗，与问句同排放大一眼可见 */
+.selall {
+  flex-shrink: 0;
+  font-size: 28rpx;
+  font-weight: 650;
+  line-height: 1.3;
+  color: var(--pine-deep);
+  background: rgba(28, 90, 74, 0.1);
+  border: 2rpx solid rgba(28, 90, 74, 0.35);
+  border-radius: 999rpx;
+  padding: 10rpx 30rpx;
+}
+.qsub {
+  display: block;
+  font-size: 26rpx;
+  color: var(--ink-2);
+  font-weight: 400;
+  margin: 10rpx 4rpx 28rpx;
+}
+
+/* —— 卡片内元素 —— */
+.fl {
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+  color: var(--ink-2);
+  margin-bottom: 18rpx;
+}
+.fl-gap {
+  margin-top: 32rpx;
+}
+.datebig {
+  font-size: 42rpx;
+  font-weight: 700;
+  color: var(--pine-deep);
+  margin-bottom: 6rpx;
+}
+.leave {
+  display: block;
+  font-size: 25rpx;
+  margin-bottom: 16rpx;
+}
+.quickrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin: 24rpx 0;
+}
+/* 快捷日期 2×2。
+   踩坑记录：原来写的是 calc(50% - 8rpx)，配 gap: 16rpx —— 两个刚好 = 100% - 16rpx + 16rpx = 100%，
+   **正好卡在临界点上**，子像素取整后略微超过 100%，于是每行只放得下一个，
+   在真机上退化成一列（老板截图里那个「四个按钮竖着排、右边参差」）。
+   改成减 12rpx：两个合计 100% - 24rpx，加 gap 后仍留 8rpx 余量，不再踩边界。 */
+.qchip {
+  width: calc(50% - 12rpx);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.qchip-hover {
+  background: rgba(28, 90, 74, 0.06);
+}
+
+/* 「开始 / 下一步」的禁用态：第 ① 步没选日期时灰显（点击由 next() 拦下并提示） */
+.btn-off {
+  opacity: 0.42;
+  box-shadow: none;
+}
+.dslot {
+  margin: 8rpx 0 32rpx;
+  padding: 24rpx 20rpx 20rpx;
+  border-radius: 32rpx;
+  background: rgba(255, 255, 255, 0.42);
+  border: 1rpx solid var(--hairline);
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.7);
+}
+.nightsrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+.nightsrow-end {
+  justify-content: flex-start;
+}
+.hint {
+  display: block;
+  margin-top: 24rpx;
+  font-size: 25rpx;
+}
+
+/* —— 开关行 —— */
+.switch-rows {
+  margin-top: 32rpx;
+  border-top: 1rpx dashed var(--hairline);
+  padding-top: 12rpx;
+}
+/* P1-5：1 人入住时没有儿童区块，switch-rows 成了卡片第一块，去掉上边框与上间距 */
+.switch-rows-flush {
+  margin-top: 0;
+  border-top: 0;
+  padding-top: 0;
+}
+.srow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding: 4rpx 0;
+}
+.slabel {
+  /* 老板反馈：第 ⑤ 步「在意哪些方面」的标签与图标偏小，整体放大一档。
+     第 ③ 步的「有老人同行 / 有宠物同行」复用同一个类，一并放大，属预期的一致性改动。 */
+  font-size: 34rpx;
+  color: var(--ink);
+}
+
+/* —— 第 ② 步：人数选项（纵向列表）——
+   老板反馈：原来三个按钮横着挤一行、「3 人及以上」顶到卡片边缘，下面还空一大片。
+   改成纵向列表：一行一个、占满卡片宽，高度压到触摸目标下限 88rpx，
+   左边图标（与人数对应）+ 中间文案 + 右边选中勾。 */
+.picklist {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+.pickrow {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  min-height: 88rpx;             /* 触摸目标下限（P0-2），不再往上加 padding 撑大 */
+  padding: 0 24rpx;
+  border-radius: 20rpx;
+  border: 2rpx solid var(--line);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 31rpx;
+  color: var(--ink);
+}
+.pickrow.on {
+  border-color: var(--pine);
+  background: rgba(28, 90, 74, 0.1);
+  color: var(--pine-deep);
+  font-weight: 650;
+}
+.picklabel {
+  flex: 1;
+  min-width: 0;
+}
+.pickcheck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(35, 41, 37, 0.25);
+  background: rgba(255, 255, 255, 0.6);
+}
+.pickrow.on .pickcheck {
+  border-color: var(--pine);
+  background: var(--pine);
+}
+/* R6：第 ① 步性别行加大 —— 这一步只有两行，页面很空，
+   行高 88 → 132rpx、字号 31 → 34rpx，图标在模板里放大到 48。 */
+.pickrow-lg {
+  min-height: 132rpx;
+  padding: 0 32rpx;
+  border-radius: 24rpx;
+  font-size: 34rpx;
+}
+.pickrow-lg .pickcheck {
+  width: 44rpx;
+  height: 44rpx;
+}
+/* R6：「替其他人管行李」开关行 —— 与上方性别列表拉开一段（与 .pickexpand 同款分隔） */
+.carerow {
+  margin-top: 28rpx;
+  padding-top: 8rpx;
+  border-top: 1rpx dashed var(--hairline);
+}
+/* 「3 人及以上」选中后展开的「真实人数」区：与列表拉开距离，
+   并给足上下留白，避免最后一行内容贴边或被裁（老板要求「底下留足空间」）。 */
+.pickexpand {
+  margin-top: 28rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx dashed var(--hairline);
+}
+.pickexpand .nightsrow {
+  margin-top: 20rpx;
+}
+
+/* —— 第 6 步 —— */
+.fxcards {
+  margin-bottom: 28rpx;
+}
+.think {
+  margin-top: 32rpx;
+}
+.think-title {
+  font-weight: 650;
+  font-size: 30rpx;
+  margin-bottom: 8rpx;
+  color: var(--ink);
+}
+.hint-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 18rpx;
+  padding: 10rpx 0;
+}
+.fxcond {
+  flex-shrink: 0;
+  font-weight: 650;
+  color: var(--ink);
+  font-size: 25rpx;
+  min-width: 200rpx;
+}
+.fxitems {
+  flex: 1;
+  min-width: 0;
+  font-size: 25rpx;
+}
+.addrow {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+.growfield {
+  flex: 1;
+  min-width: 0;
+}
+.field-ph {
+  color: var(--ink-3);
+}
+.qtyin {
+  width: 128rpx;
+  flex: 0 0 128rpx;
+  text-align: center;
+}
+.addbtn {
+  flex-shrink: 0;
+  padding: 0 28rpx;
+}
+.btn-chev {
+  margin-left: 8rpx;
+  font-size: 34rpx;
+  line-height: 1;
+}
+/* 「返回修改」与上方主按钮的间距由 .wiz-foot 的 gap 提供，不再单独设 margin */
+
+/* —— M5：图标与文字混排后的对齐补齐 —— */
+.chip {
+  gap: 10rpx;
+}
+.fl {
+  gap: 10rpx;
+}
+.slabel {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.think-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+/* —— R4-2：同行名额 —— */
+/* 名额账：先把「你占 1 位、还剩几个」讲清楚，用户才不会一路点「＋」点到超额 */
+.budget {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 24rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 20rpx;
+  background: rgba(28, 90, 74, 0.07);
+  font-size: 27rpx;
+  line-height: 1.5;
+}
+.budget-n {
+  font-weight: 650;
+  color: var(--ink);
+}
+.budget-left {
+  padding: 0 4rpx;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--pine-deep);
+}
+/* 名额用尽的说明。用琥珀色而不是红色 —— 它不是错误，只是「到上限了」 */
+.fxline.warn {
+  color: var(--amber);
+}
+
+/* —— R4-3：关系被同行人员锁定时 —— */
+/* 整排压暗表达「不可改」。点击在 setRelation 里就被拦掉了，这里只负责视觉 */
+.chips-locked {
+  opacity: 0.55;
+}
+.lockhint {
+  margin-top: 14rpx;
+  font-size: 25rpx;
+  color: var(--ink-3);
+}
+
+/* —— 区块 A「你的选择如何影响清单」的可折叠标题栏 —— */
+/* .grow / .hv 已统一收进 app.wxss（原先各页面 wxss 各写一份，本页曾漏掉，
+   导致 class 空转、标题不会撑开、chevron 会紧贴文字）。 */
+.fx-head {
+  min-height: 88rpx;             /* 触摸目标 ≥88rpx（P0-2） */
+  margin-bottom: 0;              /* 覆盖 .think-title 的 8rpx，间距交给下方内容 */
+  padding: 8rpx 0;
+}
+.fx-title {
+  /* 窄屏上宁可省略，也不要让 chevron 被挤出行外 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fx-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 48rpx;
+  height: 48rpx;
+  transition: transform 0.18s ease;
+}
+.fx-arrow.rot {
+  transform: rotate(-90deg);     /* 展开=朝下，收起=朝右（与行程页分组头同一套语言） */
+}

@@ -1,0 +1,346 @@
+/* @import 必须位于所有规则之前 */
+@import "icon.wxss";
+
+/* 图标：由 tools/gen-icons.py 生成的 base64 内联 SVG。
+   小程序不支持 <svg> 标签，且本项目零网络 / 零 CDN / 零第三方依赖，
+   不能下载 iconfont.ttf，故改用手写 SVG → base64 内联。用法见 components/icon/icon.ts */
+
+/* 设计令牌（迁移自 D:/hotel/src/styles/global.css，数值与 02-功能规格说明.md §0.2 一致） */
+/* 小程序不支持 :root，变量必须定义在 page 上 */
+page {
+  --bg: #e9e6df;
+  --ink: #232925;
+  --ink-2: #717a73;
+  --ink-3: #a6ada5;
+  --pine: #1c5a4a;
+  --pine-deep: #123f33;
+  --gold: #a9853d;
+  --red: #b23a32;
+  --green: #3f7d54;
+  --blue: #3a6ea5;
+  --purple: #7361a8;
+  --orange: #cf7a2c;
+  --slate: #5f7d8c;
+  --amber: #b45309;
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --hairline: rgba(35, 41, 37, 0.08);
+  /* 输入框描边：源实现 GearPanel.vue 用了 var(--line) 但全局未定义（边框会退化为无），此处补齐 */
+  --line: rgba(35, 41, 37, 0.18);
+  --shadow: 0 28rpx 88rpx -36rpx rgba(28, 45, 38, 0.28);
+  --radius: 40rpx;
+  --serif: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+  --sans: -apple-system, "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif;
+
+  /* 背景光斑（源实现 body::before / body::after）
+     R7 修复「色块生硬拼接」（见 色块拼凑.jpg）：原来渐变直接画在 page 上，
+     而 page 元素的 background-image 只按第一屏（视口）绘制 —— 内容滚出第一屏后
+     只剩纯色底，两种色块在第一屏底部生硬相接、出现一条横贯全屏的接缝。
+     现改为各页面挂一个固定定位的 .bg-glow 层（见下方类定义）：渐变永远铺满
+     视口、不随内容滚动，接缝从根上消失。page 只保留纯色底。 */
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 32rpx;
+  line-height: 1.7;
+}
+
+/* 全局背景光斑层（R7）。六个页面各挂一个 <view class="bg-glow" />：
+   · fixed 铺满视口 —— 渐变坐标永远相对屏幕，不随内容滚动，没有「第一屏接缝」
+   · z-index:-1 —— 垫在所有内容之下、页面底色之上（玻璃卡 backdrop-filter 照常取到它）
+   · pointer-events:none —— 纯装饰，不挡任何点击 */
+.bg-glow {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 10% -6%, rgba(201, 162, 39, 0.18), rgba(201, 162, 39, 0) 45%),
+    radial-gradient(circle at 95% 6%, rgba(28, 90, 74, 0.14), rgba(28, 90, 74, 0) 42%);
+}
+
+/* —— 盒模型兜底（P0-1 方案乙）——
+   小程序默认 content-box，且 WXSS 不支持 `*` 通配符，必须写显式元素列表。
+   这一步是为了兜住 input / picker / 自定义组件等「非 .btn」的溢出，
+   .btn 本身靠删掉 width:100% 解决（方案甲），两者配合才彻底。 */
+view, text, input, textarea, button, image, scroll-view, swiper,
+picker, label, navigator, icon, canvas, slider, progress {
+  box-sizing: border-box;
+}
+
+/* —— 页面容器 —— */
+.page {
+  padding: 0 32rpx 80rpx;
+}
+
+/* —— 玻璃卡片 —— */
+/* 降级策略（05 §5.1）：底色先给足「半透明实色 + 内高光」，任何机型都有层次；
+   backdrop-filter 只作渐进增强——iOS 生效，Android 不支持时整行被忽略，不会糊成一片。
+   不用 @supports：小程序对该特性支持不一致，写了反而可能在部分机型上丢掉基础底色。 */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow), inset 0 1rpx 0 rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+}
+.card {
+  padding: 36rpx;
+}
+
+/* —— 文本 —— */
+.num {
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+.serif {
+  font-family: var(--serif);
+}
+.muted {
+  color: var(--ink-2);
+}
+.dim {
+  color: var(--ink-3);
+}
+.sec-label {
+  margin: 28rpx 8rpx 8rpx;
+  font-size: 27rpx;
+  font-weight: 650;
+  color: var(--ink);
+}
+.tiny {
+  font-size: 23rpx;
+  color: var(--ink-2);
+}
+
+/* —— 布局与交互工具类 —— */
+/* .grow 原来在 4 个页面里各写一份、.hv 在 5 个页面里各写一份（共 9 处重复），
+   内容完全一致，统一收进全局，改一处即全局生效。
+   注意：components/item-row/item-row.wxss 里那份 .grow **必须保留** ——
+   小程序自定义组件默认样式隔离（组件 json 未声明 styleIsolation: apply-shared），
+   组件的 wxss 用不到 app.wxss 里定义的类，删掉就会掉样式。 */
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+.hv {
+  opacity: 0.7;
+}
+
+/* —— 按钮 —— */
+/* P0-1：不再写 width:100%。.btn 是 display:flex 的块级容器，
+   width:auto 时外框自动等于父内容宽，padding 被算在内，天然不会右溢出。
+   原 width:100% + padding 在 content-box 下会多长出 56rpx。 */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100rpx;
+  padding: 0 28rpx;
+  border: 0;
+  border-radius: 24rpx;
+  gap: 10rpx;
+  background: linear-gradient(150deg, #2c7c66, var(--pine-deep));
+  color: #f4f1e8;
+  font-size: 31rpx;
+  font-weight: 650;
+  box-shadow: 0 14rpx 30rpx -16rpx rgba(18, 63, 51, 0.6);
+}
+.btn.small {
+  width: auto;
+  min-height: 88rpx;
+  padding: 0 30rpx;
+  border-radius: 18rpx;
+  font-size: 27rpx;
+}
+.btn.plain {
+  background: none;
+  color: var(--ink-2);
+  box-shadow: none;
+  border: 1rpx solid var(--hairline);
+}
+.btn.ghost {
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--pine-deep);
+  box-shadow: none;
+}
+.btn:active {
+  opacity: 0.85;
+}
+
+/* —— chips —— */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 88rpx;
+  padding: 0 32rpx;
+  border-radius: 28rpx;
+  /* P0-7：描边改用 --line。--glass-border 是白色高光色，落在 .glass 白卡内会「白边白底」看不清 */
+  border: 2rpx solid var(--line);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 30rpx;
+  color: var(--ink);
+}
+.chip.on {
+  border-color: var(--pine);
+  color: var(--pine-deep);
+  font-weight: 650;
+  background: rgba(28, 90, 74, 0.1);
+}
+
+/* 快捷日期 chips：2×2（宽度由 wizard.wxss 的 .qchip 覆盖） */
+.qchip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80rpx;
+  padding: 0 8rpx;
+  border-radius: 22rpx;
+  /* P0-7：原为 --glass-border（白），与白卡 + 白底三层白叠在一起，按钮边界看不清 */
+  border: 2rpx solid var(--line);
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 28rpx;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.qchip.on {
+  border-color: var(--pine);
+  background: rgba(28, 90, 74, 0.1);
+  color: var(--pine-deep);
+  font-weight: 650;
+}
+
+/* —— 影响提示行（＋将加入：…）——
+   目前只有向导页用它。老板反馈第 ⑤ 步的说明文字偏小，字号由 25 提到 27rpx，
+   与同一卡片里放大后的 .slabel（34rpx）保持视觉比例。 */
+.fxline {
+  margin: 12rpx 0 4rpx;
+  padding: 12rpx 20rpx;
+  border-radius: 16rpx;
+  font-size: 27rpx;
+  color: var(--pine-deep);
+  background: rgba(28, 90, 74, 0.07);
+}
+
+/* —— 「已设为不带」（qty = 0）区域 ——
+   行程页的准备清单与向导第 ⑥ 步预览共用同一套口径与外观，故放全局：
+   qty=0 的项不进分组、不计入进度，收在这里，默认收起，点标题栏展开后可逐项恢复。 */
+.zero-zone {
+  margin-top: 32rpx;
+}
+.zero-head {
+  display: flex;
+  align-items: center;
+  min-height: 88rpx;             /* 触摸目标（P0-2） */
+  padding: 0 8rpx;
+}
+.zero-title {
+  font-size: 27rpx;
+  font-weight: 650;
+  color: var(--ink-2);
+}
+.zrow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 20rpx 12rpx;
+  margin: 0 -12rpx;
+}
+/* 分隔线用内缩伪元素，与行程页 .crow 同款 */
+.zrow + .zrow::after {
+  content: '';
+  position: absolute;
+  left: 12rpx;
+  right: 12rpx;
+  top: 0;
+  height: 1rpx;
+  background: var(--hairline);
+}
+.zname {
+  font-size: 29rpx;
+  color: var(--ink-2);
+}
+.zrestore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 88rpx;                 /* 触摸目标 ≥88rpx（P0-2） */
+  padding: 0 28rpx;
+  margin: -10rpx 0;              /* 负 margin 抵掉高度，别把行撑太松 */
+  border-radius: 999rpx;
+  border: 1rpx solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 26rpx;
+  font-weight: 650;
+  color: var(--pine-deep);
+}
+
+/* —— 输入框 —— */
+.field {
+  min-height: 76rpx;
+  padding: 0 20rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(35, 41, 37, 0.15);
+  background: #fff;
+  font-size: 28rpx;
+  color: var(--ink);
+}
+
+/* —— 分隔线 —— */
+.hairline {
+  height: 1rpx;
+  background: var(--hairline);
+}
+
+/* —— 等级标记：风险=圆点，证据=方块（形状即维度，同屏不混淆）—— */
+.dot {
+  flex-shrink: 0;
+  width: 20rpx;
+  height: 20rpx;
+  margin-right: 16rpx;
+  border-radius: 50%;
+  background: var(--slate);
+}
+.dot.sq {
+  border-radius: 4rpx;
+}
+.dot.red { background: var(--red); }
+.dot.orange { background: var(--orange); }
+.dot.slate { background: var(--slate); }
+.dot.blue { background: var(--blue); }
+.dot.green { background: var(--green); }
+.dot.purple { background: var(--purple); }
+.dot.gray { background: var(--ink-3); }
+
+/* —— 占位页样式（M3a 结束时仅行程页还在用，M3b 全量实现后可删）—— */
+.ph {
+  display: flex;
+  flex-direction: column;
+  padding: 120rpx 60rpx;
+}
+.ph-overline {
+  font-size: 22rpx;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+}
+.ph-title {
+  font-family: var(--serif);
+  font-size: 52rpx;
+  font-weight: 700;
+  color: var(--pine-deep);
+  margin-top: 16rpx;
+}
+.ph-note {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: var(--ink-2);
+}

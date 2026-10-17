@@ -1,0 +1,33 @@
+<view class="gearpanel" catchtap="noop">
+  <view class="gptitle">
+    <text>{{name}} 的好物</text>
+    <text class="gpfoot">个人偏好 · 非商业推荐</text>
+  </view>
+
+  <view wx:for="{{rows}}" wx:for-item="r" wx:key="index" class="gearitem">
+    <text class="gname">{{r.name}}</text>
+    <text wx:if="{{r.brand}}" class="gbrand">{{r.brand}}</text>
+    <text wx:else class="gbrand gbrand-empty">只记了物品，没记品牌</text>
+    <view class="pickdel" data-i="{{r.index}}" bindtap="remove" aria-label="删除" hover-class="hv">
+      <icon name="trash" size="26" tone="k" />
+    </view>
+  </view>
+
+  <view wx:if="{{rows.length === 0}}" class="gpempty">还没记这一件。可以只记品牌，也可以只记「用哪款」。</view>
+
+  <block wx:if="{{adding}}">
+    <view class="gearadd">
+      <input class="ginput grow" placeholder="品牌 · 型号（可留空）"
+             value="{{newBrand}}" focus="{{focusBrand}}" bindinput="onBrand" />
+      <view class="btn small" bindtap="add" hover-class="hv">保存</view>
+      <view class="gcancel" bindtap="cancelAdd" hover-class="hv">取消</view>
+    </view>
+  </block>
+  <block wx:else>
+    <view class="gactions">
+      <view class="gaction" bindtap="toggleAdd" hover-class="hv">
+        <icon name="plus" size="26" tone="d" /> 记一个品牌
+      </view>
+    </view>
+  </block>
+</view>

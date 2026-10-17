@@ -1,0 +1,178 @@
+/* 我的 —— 新建页面（源项目没有这一页，故无源实现可对照；视觉语言对齐 home/gear） */
+
+/* 底部给悬浮胶囊 tabBar 让位（导航高约 92rpx + 上下留白 + 安全区） */
+.page {
+  padding: 0 32rpx calc(200rpx + env(safe-area-inset-bottom));
+}
+
+/* —— 刊头（与首页同一套编辑风）—— */
+.masthead {
+  padding: 32rpx 12rpx 16rpx;
+}
+.overline {
+  display: block;
+  font-size: 22rpx;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 28rpx;
+}
+.display {
+  display: block;
+  font-size: 52rpx;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+.gold-rule {
+  display: block;
+  width: 88rpx;
+  height: 4rpx;
+  border-radius: 2rpx;
+  background: linear-gradient(90deg, var(--gold), rgba(201, 162, 39, 0.25));
+  margin: 20rpx 0 16rpx;
+}
+.tagline {
+  display: block;
+  font-size: 28rpx;
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
+}
+
+/* —— 卡片：本页四张卡统一用 .glass.card，间距靠这里给 —— */
+.card {
+  margin-top: 24rpx;
+}
+.cardhead {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+  font-size: 30rpx;
+  font-weight: 650;
+  color: var(--ink);
+}
+.note {
+  display: block;
+  font-size: 25rpx;
+  line-height: 1.65;
+}
+
+/* M18：数据概况卡的 .statrow/.stat/.pctsign/.statlabel/.vsep 已删 ——
+   统计与首页重复，老板要求只显示一次（留在首页）；偏好设置卡的
+   .fl/.chips 样式也随卡片一起退役。 */
+
+/* —— 备份与恢复 —— */
+.backuprow {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 24rpx;
+}
+.backuprow .btn {
+  gap: 10rpx;
+}
+.bmsg {
+  display: block;
+  margin-top: 16rpx;
+}
+
+/* —— 关于（可展开行）—— */
+.arow {
+  display: flex;
+  align-items: center;
+  min-height: 88rpx;              /* P0-2 触摸目标 */
+  padding: 0 4rpx;
+  border-top: 1rpx solid var(--hairline);
+}
+.arow-static {
+  /* 「版本」不是可点项，不要给点击反馈 */
+  min-height: 72rpx;
+}
+.alabel {
+  font-size: 28rpx;
+  color: var(--ink);
+}
+.chev {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-left: 12rpx;
+  color: var(--ink-3);
+  transition: transform 0.2s;
+}
+.chev.open {
+  transform: rotate(90deg);
+}
+.abody {
+  padding: 8rpx 4rpx 24rpx;
+  font-size: 26rpx;
+  line-height: 1.75;
+  color: #3b4340;
+}
+.dtitle {
+  margin-bottom: 14rpx;
+  font-size: 27rpx;
+  font-weight: 700;
+  color: var(--ink);
+}
+.ali {
+  position: relative;
+  padding-left: 24rpx;
+  margin-bottom: 12rpx;
+}
+.ali::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 16rpx;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0.75;
+}
+.b {
+  font-weight: 700;
+  color: var(--ink);
+}
+.d-alert {
+  margin-top: 18rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 24rpx;
+  background: rgba(178, 58, 50, 0.07);
+  border: 1rpx solid rgba(178, 58, 50, 0.22);
+}
+.d-alert-t {
+  margin-bottom: 8rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--red);
+}
+.d-alert-p {
+  font-size: 25rpx;
+  line-height: 1.65;
+  color: #4a3f3d;
+}
+.d-alert .b {
+  color: var(--red);
+}
+
+/* —— 危险区（与行程页同一套视觉）—— */
+.danger-zone {
+  margin-top: 48rpx;
+  padding-top: 32rpx;
+  border-top: 1rpx dashed rgba(178, 58, 50, 0.25);
+}
+.dg-note {
+  display: block;
+  margin-bottom: 16rpx;
+}
+.danger-btn {
+  min-height: 96rpx;
+  border: 2rpx solid rgba(178, 58, 50, 0.35);
+  background: rgba(178, 58, 50, 0.06);
+  color: var(--red);
+  font-weight: 650;
+  box-shadow: none;
+}

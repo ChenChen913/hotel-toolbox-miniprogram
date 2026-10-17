@@ -1,0 +1,4 @@
+<view class="pill">
+  <view class="prog"><view class="fill" style="width: {{pct}}%"></view></view>
+  <view class="text"><text class="dn num">{{done}}</text> / {{total}} {{label}}</view>
+</view>

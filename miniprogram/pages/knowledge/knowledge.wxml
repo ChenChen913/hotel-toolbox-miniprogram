@@ -1,0 +1,81 @@
+<view class="page">
+  <!-- R7：全局背景光斑（fixed 铺满视口，见 app.wxss 的 .bg-glow） -->
+  <view class="bg-glow"></view>
+
+  <view wx:if="{{showBack}}" class="backbtn glass" bindtap="backToStay" hover-class="hv">
+    <icon name="arrow-left" size="32" tone="i" />返回行程
+  </view>
+
+  <!-- R7：免责声明已从知识库移除 —— 与「我的」页的「免责声明」重复（老板反馈：
+       删知识库这份、保留「我的」那份）。数据仍由 core/data.ts 的 DISCLAIMER 同源供给「我的」页。
+       等级图例保留在这里 —— 证据来源 / 风险等级是读知识条目时的随身参考，与「我的」不重复。 -->
+
+  <!-- 等级图例 -->
+  <view class="glass legend">
+    <view class="leg-head">等级图例</view>
+    <view class="leg-block">
+      <view class="leg-t">证据来源<text class="tag">方块</text></view>
+      <view class="leg-items">
+        <view wx:for="{{eviList}}" wx:for-item="m" wx:key="label" class="leg-i">
+          <view class="dot sq {{m.tone}}"></view>{{m.label}}
+        </view>
+      </view>
+    </view>
+    <view class="leg-block">
+      <view class="leg-t">风险等级<text class="tag">圆点</text></view>
+      <view class="leg-items">
+        <view wx:for="{{riskList}}" wx:for-item="m" wx:key="label" class="leg-i">
+          <view class="dot {{m.tone}}"></view>{{m.label}}
+        </view>
+      </view>
+    </view>
+    <view class="leg-note num">共 {{total}} 条 · 按 {{modCount}} 个模块分组</view>
+  </view>
+
+  <!-- 11 个模块 · 44 条
+       P2-1：模块级折叠。默认全部收起，首屏只剩「图例 + 11 行目录」（免责声明 R7 起移至「我的」页）。
+       模块行 = 序号 · 模块名 · 条数 · chevron，整行可点，手风琴式单选展开。
+       内容区用 wx:if 直接切（44 条富文本做高度动画在安卓会掉帧，见雷区 R20）。 -->
+  <block wx:for="{{modules}}" wx:for-item="m" wx:for-index="mi" wx:key="name">
+    <view class="sec-label sec-flex mod-head" data-mi="{{mi}}" bindtap="toggleModule" hover-class="hv">
+      <text class="mod-idx num">{{mi + 1}}</text>
+      <text class="grow mod-name">{{m.name}}</text>
+      <text class="cnt num">{{m.count}} 条</text>
+      <view class="chev mod-chev {{m.open ? '' : 'rot'}}"><icon name="chevron-down" size="28" tone="k" /></view>
+    </view>
+    <view wx:if="{{m.open}}" class="glass card" id="mod-{{mi}}">
+      <view wx:for="{{m.items}}" wx:for-item="k" wx:for-index="ii" wx:key="id" class="entry">
+
+        <view class="sum" data-mi="{{mi}}" data-ii="{{ii}}" bindtap="toggleEntry" hover-class="hv">
+          <view class="dot {{k.tone}}"></view>
+          <text class="ktitle grow">{{k.title}}</text>
+          <view wx:if="{{k.review}}" class="review"><icon name="alert-triangle" size="24" tone="a" />建议复核</view>
+          <view class="chev {{k.open ? 'open' : ''}}"><icon name="chevron-down" size="28" tone="k" /></view>
+        </view>
+
+        <block wx:if="{{k.open}}">
+          <view class="body">
+            <view wx:for="{{k.paras}}" wx:for-item="p" wx:key="k" class="bpara">
+              <block wx:for="{{p.segs}}" wx:for-item="sg" wx:key="k">
+                <text wx:if="{{sg.b}}" class="b">{{sg.t}}</text>
+                <text wx:else>{{sg.t}}</text>
+              </block>
+            </view>
+          </view>
+          <view class="src">
+            <text class="grow">证据 {{k.evi}} ｜ 来源：{{k.source}} ｜ 核查于 {{k.updated}}</text>
+            <view wx:if="{{k.hasCopy}}" class="copybtn" data-id="{{k.id}}" bindtap="copyEntry" hover-class="hv">
+              <icon name="copy" size="26" />{{copiedId === k.id ? '已复制' : '复制话术'}}
+            </view>
+          </view>
+        </block>
+
+      </view>
+    </view>
+  </block>
+
+  <!-- P1-1 回到顶部：本页是 tabBar 页，按钮需抬到悬浮胶囊导航之上 -->
+  <view wx:if="{{showGoTop}}" class="gotop" bindtap="goTop" hover-class="hv" aria-label="回到顶部">
+    <icon name="chevron-up" size="34" tone="d" />
+  </view>
+</view>

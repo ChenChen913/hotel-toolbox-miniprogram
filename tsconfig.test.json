@@ -1,0 +1,18 @@
+{
+  // 只给 tests/ 用的类型检查配置。
+  // 刻意不叫 tsconfig.json：微信开发者工具与 `npm run typecheck` 都只认 miniprogram/tsconfig.json，
+  // 根目录再放一个默认名容易互相打架（M0 就踩过一次）。
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["ES2022"],
+    "types": ["node"]
+  },
+  "include": ["tests/**/*.ts"]
+}

@@ -1,0 +1,216 @@
+/* 知识库 —— 迁移自 KnowledgeView.vue */
+
+/* 底部给悬浮胶囊 tabBar 让位 */
+.page {
+  padding: 0 32rpx calc(200rpx + env(safe-area-inset-bottom));
+}
+
+.backbtn {
+  display: flex;
+  align-items: center;
+  height: 88rpx;
+  margin: 16rpx 0 20rpx;
+  padding: 0 32rpx;
+  border-radius: 26rpx;
+  font-size: 28rpx;
+  color: var(--pine-deep);
+}
+
+/* R7：免责声明样式已随声明块一起移除（声明移至「我的」页，样式在那边的 wxss 里）。 */
+.b {
+  font-weight: 700;
+  color: var(--ink);
+}
+/* —— 图例 —— */
+.legend {
+  margin-top: 24rpx;
+  padding: 28rpx 36rpx 24rpx;
+}
+.leg-head {
+  margin-bottom: 20rpx;
+  font-size: 22rpx;
+  font-weight: 650;
+  letter-spacing: 0.16em;
+  color: var(--ink-3);
+}
+.leg-block + .leg-block {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx dashed var(--hairline);
+}
+.leg-t {
+  display: flex;
+  align-items: center;
+  margin-bottom: 14rpx;
+  font-size: 25rpx;
+  font-weight: 650;
+  color: var(--ink);
+}
+.leg-t .tag {
+  margin-left: 12rpx;
+  padding: 2rpx 14rpx;
+  border-radius: 99rpx;
+  border: 1rpx solid var(--hairline);
+  font-size: 22rpx;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.leg-items {
+  display: flex;
+  flex-wrap: wrap;
+}
+.leg-i {
+  display: flex;
+  align-items: center;
+  margin: 0 16rpx 12rpx 0;
+  padding: 8rpx 20rpx 8rpx 16rpx;
+  border-radius: 99rpx;
+  border: 1rpx solid var(--hairline);
+  background: rgba(255, 255, 255, 0.45);
+  font-size: 25rpx;
+  color: var(--ink-2);
+}
+.leg-note {
+  margin-top: 20rpx;
+  font-size: 23rpx;
+  color: var(--ink-3);
+}
+
+/* —— 条目 —— */
+/* .grow 已统一收进 app.wxss（原先各页面 wxss 各写一份，本页曾漏掉，
+   导致模板里的 class="ktitle grow" 空转 —— 短标题时「建议复核」徽标与 chevron 会紧贴标题）。 */
+
+/* —— P2-1 模块目录（11 个可点行）——
+   默认全部收起，进来先看到免责声明 + 等级图例 + 11 行目录；
+   点击某行 = 手风琴式单选展开（再点同一行收起）。 */
+.mod-head {
+  min-height: 88rpx;              /* P0-2：可点元素最小高度 */
+  /* 覆盖 .sec-label 的 margin: 28rpx 8rpx 8rpx —— 目录行比内容标题密一点才像目录 */
+  margin: 20rpx 8rpx 8rpx;
+  padding: 0 12rpx;
+  border-radius: 20rpx;
+  transition: background-color 0.2s ease;
+}
+.mod-idx {
+  flex-shrink: 0;
+  width: 48rpx;
+  font-size: 22rpx;
+  font-weight: 650;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+}
+.mod-name {
+  font-size: 28rpx;
+  font-weight: 650;
+  color: var(--ink);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* 收起 = 朝右，展开 = 朝下，与行程页分组头（.grp-arrow）保持同一套指示语言。
+   只给箭头做 transform 过渡；内容区用 wx:if 直接切，绝不做高度动画。 */
+.mod-chev {
+  transition: transform 0.2s ease;
+}
+.mod-chev.rot {
+  transform: rotate(-90deg);
+}
+
+.sec-flex {
+  display: flex;
+  align-items: center;
+}
+.cnt {
+  margin-left: auto;
+  font-size: 23rpx;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.card {
+  padding: 4rpx 36rpx;
+}
+.entry {
+  padding: 8rpx 0;
+  border-bottom: 1rpx dashed var(--hairline);
+}
+.entry:last-child {
+  border-bottom: 0;
+}
+.sum {
+  display: flex;
+  align-items: center;
+  min-height: 88rpx;
+}
+.ktitle {
+  font-size: 29rpx;
+  font-weight: 600;
+  color: var(--ink);
+}
+.review {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  flex-shrink: 0;
+  margin: 0 12rpx;
+  padding: 3rpx 14rpx;
+  border-radius: 99rpx;
+  border: 1rpx solid rgba(180, 83, 9, 0.3);
+  font-size: 22rpx;
+  color: var(--amber);
+}
+.chev {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-left: 12rpx;
+  color: var(--ink-3);
+  transition: transform 0.2s;
+}
+.chev.open {
+  transform: rotate(90deg);
+}
+.body {
+  margin: 10rpx 4rpx 20rpx;
+  font-size: 29rpx;
+  line-height: 1.75;
+  color: #343c36;
+}
+.bpara {
+  margin-bottom: 14rpx;
+}
+.src {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12rpx 0 20rpx;
+  border-top: 1rpx dashed var(--hairline);
+  font-size: 24rpx;
+  color: var(--ink-2);
+}
+.copybtn {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 6rpx 20rpx;
+  border-radius: 99rpx;
+  border: 1rpx solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 24rpx;
+  color: var(--pine-deep);
+}
+
+/* —— P1-1 回到顶部（本页是 tabBar 页：必须抬到悬浮胶囊导航 1000 之上）—— */
+.gotop {
+  position: fixed;
+  right: 32rpx;
+  bottom: calc(180rpx + env(safe-area-inset-bottom));
+  z-index: 950;                                  /* < tabBar 1000，> 普通内容 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1rpx solid var(--glass-border);
+  box-shadow: 0 10rpx 28rpx -12rpx rgba(28, 45, 38, 0.35);
+}

@@ -1,0 +1,29 @@
+/* 源实现：src/components/Toggle.vue + src/styles/global.css 里的 .switch */
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 100rpx;
+  height: 60rpx;
+  /* 上下各留 14rpx：把点击热区撑到 88rpx */
+  margin: 14rpx 0;
+  border-radius: 999rpx;
+  background: rgba(35, 41, 37, 0.18);
+  transition: background 0.2s;
+}
+.switch.on {
+  background: var(--pine);
+}
+.knob {
+  position: absolute;
+  top: 6rpx;
+  left: 6rpx;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4rpx 10rpx -2rpx rgba(28, 45, 38, 0.35);
+  transition: transform 0.2s;
+}
+.switch.on .knob {
+  transform: translateX(40rpx);
+}

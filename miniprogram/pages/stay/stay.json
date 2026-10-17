@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "行程",
+  "usingComponents": {
+    "item-row": "/components/item-row/item-row",
+    "clothing-add": "/components/clothing-add/clothing-add",
+    "progress-pill": "/components/progress-pill/progress-pill",
+    "icon": "/components/icon/icon",
+    "modal": "/components/modal/modal",
+    "toast": "/components/toast/toast"
+  }
+}
